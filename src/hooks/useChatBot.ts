@@ -452,9 +452,14 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
     [step, preferences, addBotMessage, getRecommendations, onRecommendations, saveHistory, goBack]
   );
 
+  const totalSteps = 14;
+  const currentStep = Math.min(step + 1, totalSteps);
+
   return {
     messages,
     isTyping,
     handleUserMessage,
+    currentStep,
+    totalSteps,
   };
 }
