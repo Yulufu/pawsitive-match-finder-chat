@@ -38,7 +38,7 @@ export default function Chat() {
     <main className="flex-1 flex flex-col max-w-3xl mx-auto w-full">
       <header className="text-center py-6 px-4">
         <h1 className="text-2xl font-display font-bold text-foreground">
-          Meet Melon! 🐶
+          Meet Melon! 🐕
         </h1>
         <p className="text-muted-foreground mt-1">
           A friendly Australian Shepherd who wants to introduce you to their friends
