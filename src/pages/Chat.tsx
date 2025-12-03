@@ -4,9 +4,18 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { useChatBot } from "@/hooks/useChatBot";
+import { useRecommendations } from "@/contexts/RecommendationsContext";
 
 export default function Chat() {
-  const { messages, isTyping, handleUserMessage } = useChatBot();
+  const { setRecommendations, setExploreDogs, setHasCompletedChat } = useRecommendations();
+  
+  const { messages, isTyping, handleUserMessage } = useChatBot({
+    onRecommendations: (recommended, explore) => {
+      setRecommendations(recommended);
+      setExploreDogs(explore);
+      setHasCompletedChat(true);
+    },
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 

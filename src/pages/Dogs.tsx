@@ -1,6 +1,8 @@
 import { DogCard } from "@/components/DogCard";
-import { sampleDogs } from "@/data/sampleDogs";
-import { Sparkles, Compass } from "lucide-react";
+import { useRecommendations } from "@/contexts/RecommendationsContext";
+import { Sparkles, Compass, MessageCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 // Placeholder images for dogs - these would come from an API
 const dogImages = [
@@ -21,11 +23,34 @@ const dogImages = [
   "https://images.unsplash.com/photo-1598133894008-61f7fdb8cc3a?w=500&h=400&fit=crop",
 ];
 
-// TODO: Replace with actual API data
-const recommendedDogs = sampleDogs.slice(0, Math.min(10, sampleDogs.length));
-const exploreDogs = sampleDogs.slice(0, Math.min(5, sampleDogs.length));
-
 export default function Dogs() {
+  const { recommendations, exploreDogs, hasCompletedChat } = useRecommendations();
+
+  // Empty state - user hasn't chatted with Melon yet
+  if (!hasCompletedChat) {
+    return (
+      <main className="container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-md space-y-6 animate-fade-in">
+          <div className="w-24 h-24 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
+            <span className="text-5xl">🐶</span>
+          </div>
+          <h1 className="text-2xl font-display font-bold text-foreground">
+            No Recommendations Yet!
+          </h1>
+          <p className="text-muted-foreground">
+            Chat with Melon first to get personalized dog recommendations based on your lifestyle and preferences!
+          </p>
+          <Link to="/">
+            <Button className="gap-2">
+              <MessageCircle className="w-4 h-4" />
+              Chat with Melon
+            </Button>
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="container mx-auto px-4 py-8 space-y-12">
       {/* Recommendations Section */}
@@ -43,7 +68,7 @@ export default function Dogs() {
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {recommendedDogs.map((dog, index) => (
+          {recommendations.map((dog, index) => (
             <div key={dog.id} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
               <DogCard dog={dog} imageUrl={dogImages[index % dogImages.length]} />
             </div>
@@ -67,7 +92,7 @@ export default function Dogs() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {exploreDogs.map((dog, index) => (
-            <div key={`explore-${dog.id}`} className="animate-slide-up" style={{ animationDelay: `${(index + recommendedDogs.length) * 50}ms` }}>
+            <div key={`explore-${dog.id}`} className="animate-slide-up" style={{ animationDelay: `${(index + recommendations.length) * 50}ms` }}>
               <DogCard dog={dog} imageUrl={dogImages[(index + 5) % dogImages.length]} />
             </div>
           ))}
