@@ -3,12 +3,37 @@ import { ChatMessage, ChatOption, Dog } from "@/types/dog";
 import { sampleDogs } from "@/data/sampleDogs";
 
 interface UserPreferences {
-  livingSpace?: string;
-  hasYard?: boolean;
+  // Household & location
+  location?: string;
+  hasChildren?: boolean;
+  childrenAges?: string;
+  hasOtherPets?: boolean;
+  petTypes?: string;
+  
+  // Home & environment
+  homeType?: string;
+  hasFencedYard?: boolean;
+  neighborhoodNoise?: string;
+  
+  // Lifestyle & activity
   activityLevel?: string;
-  hasKids?: boolean;
-  hasPets?: boolean;
+  hoursAlone?: string;
+  
+  // Dog traits
   sizePreference?: string;
+  agePreference?: string;
+  genderPreference?: string;
+  
+  // Safety & compatibility
+  needsGoodWithKids?: boolean;
+  needsGoodWithDogs?: boolean;
+  needsGoodWithCats?: boolean;
+  hasAllergies?: boolean;
+  trainingPreference?: string;
+  
+  // Health & support
+  openToSpecialNeeds?: boolean;
+  requiresVaccinated?: boolean;
 }
 
 interface UseChatBotOptions {
@@ -29,11 +54,11 @@ const createMessage = (
 
 const initialMessage = createMessage(
   "bot",
-  "*wags tail excitedly* \n\nOh wow, a new friend! Hi hi hi! 🐾\n\nI'm Melon, a fluffy Australian Shepherd mix! I live here at the shelter with all my best buddies! We're all looking for our forever homes, and I LOVE helping my friends find their perfect humans!\n\n*tilts head curiously*\n\nSo tell me about where you live! Do you have a big yard I could... I mean, my friends could run around in?",
+  "*wags tail excitedly* \n\nOh wow, a new friend! Hi hi hi! 🐾\n\nI'm Melon, a fluffy Australian Shepherd mix! I live here at the shelter with all my best buddies! We're all looking for our forever homes, and I LOVE helping my friends find their perfect humans!\n\n*tilts head curiously*\n\nFirst things first - where do you live? This helps me know which of my friends might be nearby!",
   [
-    { id: "1", label: "🏠 House with a yard!", value: "house_yard" },
-    { id: "2", label: "🏡 House, but no yard", value: "house_no_yard" },
-    { id: "3", label: "🏢 An apartment", value: "apartment" },
+    { id: "1", label: "🏙️ Big city life", value: "city" },
+    { id: "2", label: "🏘️ Suburbs", value: "suburbs" },
+    { id: "3", label: "🌾 Rural/countryside", value: "rural" },
   ]
 );
 
@@ -53,10 +78,13 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
 
   const getRecommendations = useCallback((prefs: UserPreferences) => {
     return sampleDogs.filter((dog) => {
-      if (prefs.sizePreference === "small" && dog.size !== "small") return false;
-      if (prefs.sizePreference === "large" && dog.size === "small") return false;
-      if (prefs.hasKids && !dog.goodWithKids) return false;
-      if (prefs.hasPets && !dog.goodWithPets) return false;
+      if (prefs.sizePreference && prefs.sizePreference !== "any") {
+        if (prefs.sizePreference === "small" && dog.size !== "small") return false;
+        if (prefs.sizePreference === "large" && dog.size === "small") return false;
+      }
+      if (prefs.needsGoodWithKids && !dog.goodWithKids) return false;
+      if (prefs.needsGoodWithDogs && !dog.goodWithPets) return false;
+      if (prefs.needsGoodWithCats && !dog.goodWithPets) return false;
       if (prefs.activityLevel === "low" && dog.energyLevel === "high") return false;
       if (prefs.activityLevel === "high" && dog.energyLevel === "low") return false;
       return true;
@@ -69,130 +97,234 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
 
       switch (step) {
         case 0:
-          // Living space
-          const hasYard = content.includes("yard");
-          setPreferences((prev) => ({
-            ...prev,
-            livingSpace: content,
-            hasYard,
-          }));
+          // Location
+          setPreferences((prev) => ({ ...prev, location: content }));
           setStep(1);
-          
-          if (hasYard) {
-            addBotMessage(
-              "*ears perk up* \n\nA YARD?! Oh my goodness, some of my friends are gonna be SO excited about that! My buddy Bear does the biggest zoomies - he'd love all that space!\n\n*spins in a circle*\n\nOkay okay, I need to focus. Important question: How much do you like going on adventures? Like walks and runs and playing fetch?",
-              [
-                { id: "1", label: "🛋️ I prefer chill cuddle time", value: "low" },
-                { id: "2", label: "⚖️ A nice balance of both!", value: "medium" },
-                { id: "3", label: "🏃 I'm super active!", value: "high" },
-              ]
-            );
-          } else {
-            addBotMessage(
-              "*nods understandingly*\n\nThat's totally okay! Lots of my friends do great in cozy spaces. Peanut actually prefers it - she says she can keep a better eye on her human that way! *giggles in dog*\n\nSo tell me, do you like lots of walks and playtime, or are you more of a Netflix-and-cuddle person?",
-              [
-                { id: "1", label: "🛋️ Cuddles all the way!", value: "low" },
-                { id: "2", label: "⚖️ A bit of both!", value: "medium" },
-                { id: "3", label: "🏃 Adventure time!", value: "high" },
-              ]
-            );
-          }
+          addBotMessage(
+            "*perks ears up*\n\nOoh nice! Now here's a big question - do you have any little humans running around at home? You know, kids?",
+            [
+              { id: "1", label: "👶 Yes, young kids (under 8)", value: "young_kids" },
+              { id: "2", label: "🧒 Yes, older kids (8+)", value: "older_kids" },
+              { id: "3", label: "🚫 No kiddos", value: "no_kids" },
+            ]
+          );
           break;
 
-        case 1:
-          // Activity level
-          setPreferences((prev) => ({ ...prev, activityLevel: content }));
+        case 1: {
+          // Children
+          const hasChildren = content !== "no_kids";
+          const childrenAges = content === "young_kids" ? "under_8" : content === "older_kids" ? "8_plus" : undefined;
+          setPreferences((prev) => ({ 
+            ...prev, 
+            hasChildren,
+            childrenAges,
+            needsGoodWithKids: content === "young_kids"
+          }));
           setStep(2);
-          
-          if (content === "low") {
-            addBotMessage(
-              "*settles down comfortably*\n\nOoooh, you sound like you'd get along great with Cinnamon! She's the BEST at naps. Sometimes we nap together and it's the coziest thing ever.\n\n*yawns just thinking about it*\n\nOh! Important thing - do you have any little humans at home? Like tiny ones that might want to pet us... a lot?",
-              [
-                { id: "1", label: "👶 Yes, I have kids!", value: "yes" },
-                { id: "2", label: "🚫 Nope, no kiddos", value: "no" },
-              ]
-            );
-          } else if (content === "high") {
-            addBotMessage(
-              "*bounces excitedly*\n\nYES! Another adventure human! Bear and Maple are gonna LOVE you! We play chase every day and it's the best thing EVER!\n\n*panting happily*\n\nOh oh oh, one more thing - any small humans in your pack? Some of my friends are extra gentle with kids!",
-              [
-                { id: "1", label: "👶 Yep, got little ones!", value: "yes" },
-                { id: "2", label: "🚫 No kids here", value: "no" },
-              ]
-            );
-          } else {
-            addBotMessage(
-              "*does a happy wiggle*\n\nBalance is good! Sometimes I want to run and play, and sometimes I just want belly rubs while my human watches TV. You get it!\n\nSpeaking of family... do you have any tiny humans? Kids, I think you call them?",
-              [
-                { id: "1", label: "👶 Yes, we have kids!", value: "yes" },
-                { id: "2", label: "🚫 No children", value: "no" },
-              ]
-            );
-          }
+          addBotMessage(
+            "*sniffs curiously*\n\nOoh ooh, very important question! Do you have any other furry (or not-so-furry) friends at home already?",
+            [
+              { id: "1", label: "🐕 Yes, other dog(s)", value: "dogs" },
+              { id: "2", label: "🐱 Yes, cat(s)", value: "cats" },
+              { id: "3", label: "🐾 Yes, both dogs and cats", value: "both" },
+              { id: "4", label: "🚫 No other pets", value: "none" },
+            ]
+          );
           break;
+        }
 
-        case 2:
-          // Kids
-          const hasKids = content === "yes";
-          setPreferences((prev) => ({ ...prev, hasKids }));
+        case 2: {
+          // Other pets
+          const hasOtherPets = content !== "none";
+          setPreferences((prev) => ({ 
+            ...prev, 
+            hasOtherPets,
+            petTypes: content,
+            needsGoodWithDogs: content === "dogs" || content === "both",
+            needsGoodWithCats: content === "cats" || content === "both"
+          }));
           setStep(3);
-          
-          if (hasKids) {
-            addBotMessage(
-              "*tail wags faster*\n\nOH I love kids! They give the BEST treats and scratches! Biscuit is especially good with little humans - she's so gentle and patient. Once a kid fell asleep on her and she didn't move for TWO HOURS!\n\n*looks around conspiratorially*\n\nPsst... do you have any other furry friends at home? Like... other dogs? Or even... *whispers* cats?",
-              [
-                { id: "1", label: "🐾 Yes, other pets!", value: "yes" },
-                { id: "2", label: "🚫 No other pets", value: "no" },
-              ]
-            );
-          } else {
-            addBotMessage(
-              "*nods thoughtfully*\n\nThat's cool! Some of my friends actually prefer being the only baby in the family - more treats and attention for them! *winks*\n\n*sniffs curiously*\n\nHey, do I smell other animals on you? Do you have other furry family members at home?",
-              [
-                { id: "1", label: "🐾 Yes, I have other pets!", value: "yes" },
-                { id: "2", label: "🚫 Just me!", value: "no" },
-              ]
-            );
-          }
+          addBotMessage(
+            "*does a little spin*\n\nNow tell me about your den! What type of home do you have?",
+            [
+              { id: "1", label: "🏢 Apartment/Condo", value: "apartment" },
+              { id: "2", label: "🏠 House", value: "house" },
+              { id: "3", label: "🏡 Townhouse", value: "townhouse" },
+            ]
+          );
           break;
+        }
 
         case 3:
-          // Pets
-          const hasPets = content === "yes";
-          setPreferences((prev) => ({ ...prev, hasPets }));
+          // Home type
+          setPreferences((prev) => ({ ...prev, homeType: content }));
           setStep(4);
           
-          if (hasPets) {
+          if (content === "apartment") {
             addBotMessage(
-              "*sniffs excitedly*\n\nMore friends! I knew I smelled something! Don't worry, lots of us here at the shelter are great at making furry friends. Cinnamon even likes CATS! I know, I was shocked too.\n\n*sits down properly, trying to look professional*\n\nOkay, last question! What size friend are you looking for?",
+              "*nods understandingly*\n\nCozy spaces can be great! Some of my friends actually prefer apartments - less space to patrol means more nap time! *giggles*\n\nIs your building generally quiet or pretty busy with noise?",
               [
-                { id: "1", label: "🐕 Pocket-sized (small)", value: "small" },
-                { id: "2", label: "🐕‍🦺 Medium friend", value: "medium" },
-                { id: "3", label: "🦮 Big ol' buddy (large)", value: "large" },
-                { id: "4", label: "💕 Size doesn't matter!", value: "any" },
+                { id: "1", label: "🤫 Nice and quiet", value: "quiet" },
+                { id: "2", label: "📢 Pretty busy/noisy", value: "noisy" },
+                { id: "3", label: "⚖️ Somewhere in between", value: "moderate" },
               ]
             );
           } else {
             addBotMessage(
-              "*does a little spin*\n\nSo you'd be getting a FIRST fur baby! That's so exciting! You're gonna be the best pet parent, I can tell.\n\n*tries to sit still but tail keeps wagging*\n\nOkay okay, super important last question: What size doggo are you dreaming of?",
+              "*tail wags faster*\n\nOoh a house! Do you have a fenced yard? Some of my friends LOVE having a yard to do zoomies in!",
               [
-                { id: "1", label: "🐕 Tiny and portable!", value: "small" },
-                { id: "2", label: "🐕‍🦺 Medium is perfect", value: "medium" },
-                { id: "3", label: "🦮 Big and huggable!", value: "large" },
-                { id: "4", label: "💕 I'll love any size!", value: "any" },
+                { id: "1", label: "🏡 Yes, fully fenced!", value: "fenced" },
+                { id: "2", label: "🌿 Yard but not fenced", value: "unfenced" },
+                { id: "3", label: "🚫 No yard", value: "no_yard" },
               ]
             );
           }
           break;
 
         case 4:
-          // Size preference & show results
+          // Yard or noise level
+          if (preferences.homeType === "apartment") {
+            setPreferences((prev) => ({ ...prev, neighborhoodNoise: content }));
+          } else {
+            setPreferences((prev) => ({ 
+              ...prev, 
+              hasFencedYard: content === "fenced"
+            }));
+          }
+          setStep(5);
+          addBotMessage(
+            "*settles down to listen carefully*\n\nOkay, super important question! How active do you want your new best friend to be?",
+            [
+              { id: "1", label: "🛋️ Couch potato buddy", value: "low" },
+              { id: "2", label: "🚶 Moderate walks & play", value: "medium" },
+              { id: "3", label: "🏃 High energy - running/hiking!", value: "high" },
+            ]
+          );
+          break;
+
+        case 5:
+          // Activity level
+          setPreferences((prev) => ({ ...prev, activityLevel: content }));
+          setStep(6);
+          addBotMessage(
+            "*tilts head thoughtfully*\n\nHow many hours will your new friend be alone on a typical weekday? Some of us get lonely easily... *puppy eyes*",
+            [
+              { id: "1", label: "🏠 Less than 4 hours", value: "less_4" },
+              { id: "2", label: "⏰ 4-8 hours", value: "4_to_8" },
+              { id: "3", label: "😴 More than 8 hours", value: "more_8" },
+            ]
+          );
+          break;
+
+        case 6:
+          // Hours alone
+          setPreferences((prev) => ({ ...prev, hoursAlone: content }));
+          setStep(7);
+          addBotMessage(
+            "*bounces excitedly*\n\nNow the fun part! What size doggo are you dreaming of?",
+            [
+              { id: "1", label: "🐕 Extra Small (under 10 lbs)", value: "xs" },
+              { id: "2", label: "🐕 Small (10-25 lbs)", value: "small" },
+              { id: "3", label: "🐕‍🦺 Medium (25-50 lbs)", value: "medium" },
+              { id: "4", label: "🦮 Large (50-80 lbs)", value: "large" },
+              { id: "5", label: "🐻 Extra Large (80+ lbs)", value: "xl" },
+              { id: "6", label: "💕 No preference!", value: "any" },
+            ]
+          );
+          break;
+
+        case 7:
+          // Size preference
+          setPreferences((prev) => ({ ...prev, sizePreference: content === "any" ? undefined : content }));
+          setStep(8);
+          addBotMessage(
+            "*wags tail*\n\nDo you have an age preference? Puppies are adorable but need LOTS of work. Seniors like to nap with you!",
+            [
+              { id: "1", label: "🐶 Puppy (under 1 year)", value: "puppy" },
+              { id: "2", label: "🐕 Young (1-3 years)", value: "young" },
+              { id: "3", label: "🐕‍🦺 Adult (3-7 years)", value: "adult" },
+              { id: "4", label: "👴 Senior (7+ years)", value: "senior" },
+              { id: "5", label: "💕 No preference!", value: "any" },
+            ]
+          );
+          break;
+
+        case 8:
+          // Age preference
+          setPreferences((prev) => ({ ...prev, agePreference: content === "any" ? undefined : content }));
+          setStep(9);
+          addBotMessage(
+            "*curious head tilt*\n\nDo you have a gender preference for your new friend?",
+            [
+              { id: "1", label: "♂️ Male", value: "male" },
+              { id: "2", label: "♀️ Female", value: "female" },
+              { id: "3", label: "💕 No preference!", value: "any" },
+            ]
+          );
+          break;
+
+        case 9:
+          // Gender preference
+          setPreferences((prev) => ({ ...prev, genderPreference: content === "any" ? undefined : content }));
+          setStep(10);
+          addBotMessage(
+            "*sneezes cutely*\n\nDoes anyone in your home have dog allergies? Some of my friends are more hypoallergenic than others!",
+            [
+              { id: "1", label: "🤧 Yes, we have allergies", value: "yes" },
+              { id: "2", label: "✨ Nope, no allergies!", value: "no" },
+            ]
+          );
+          break;
+
+        case 10:
+          // Allergies
+          setPreferences((prev) => ({ ...prev, hasAllergies: content === "yes" }));
+          setStep(11);
+          addBotMessage(
+            "*sits up straight trying to look professional*\n\nHow about training? Are you okay with a dog that still needs some house-training and leash work, or would you prefer one who's already got the basics down?",
+            [
+              { id: "1", label: "🎓 Already trained please!", value: "trained" },
+              { id: "2", label: "📚 Some training needed is fine", value: "some_training" },
+              { id: "3", label: "🐾 I'm happy to train from scratch!", value: "needs_training" },
+            ]
+          );
+          break;
+
+        case 11:
+          // Training preference
+          setPreferences((prev) => ({ ...prev, trainingPreference: content }));
+          setStep(12);
+          addBotMessage(
+            "*gentle tail wag*\n\nSome of my friends here have special medical needs or disabilities. They're just as loveable! Are you open to considering them?",
+            [
+              { id: "1", label: "💕 Yes, I'm open to special needs", value: "yes" },
+              { id: "2", label: "🚫 Prefer no special needs", value: "no" },
+              { id: "3", label: "🤔 Depends on the situation", value: "maybe" },
+            ]
+          );
+          break;
+
+        case 12:
+          // Special needs
+          setPreferences((prev) => ({ ...prev, openToSpecialNeeds: content === "yes" || content === "maybe" }));
+          setStep(13);
+          addBotMessage(
+            "*final excited wiggle*\n\nLast question! Would you like to only see dogs who are already spayed/neutered and up-to-date on vaccines?",
+            [
+              { id: "1", label: "✅ Yes, only fully vaccinated", value: "yes" },
+              { id: "2", label: "🚫 Doesn't matter to me", value: "no" },
+            ]
+          );
+          break;
+
+        case 13: {
+          // Vaccination preference & show results
           const finalPrefs = {
             ...preferences,
-            sizePreference: content === "any" ? undefined : content,
+            requiresVaccinated: content === "yes",
           };
           setPreferences(finalPrefs);
-          setStep(5);
+          setStep(14);
 
           const matches = getRecommendations(finalPrefs);
           
@@ -204,22 +336,12 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
           onRecommendations?.(matches.slice(0, 10), explore);
 
           if (matches.length > 0) {
-            const dogIntros = matches.slice(0, 10).map((d) => {
-              const intros: Record<string, string> = {
-                "Biscuit": "Biscuit (she gives the BEST cuddles!)",
-                "Mochi": "Mochi (she's so adventurous!)",
-                "Cinnamon": "Cinnamon (the nap queen 👑)",
-                "Peanut": "Peanut (tiny but FIERCE with love)",
-                "Bear": "Bear (the biggest teddy bear ever!)",
-                "Maple": "Maple (that fluffy butt tho!)",
-              };
-              return intros[d.name] || d.name;
-            }).join(", ");
+            const dogNames = matches.slice(0, 5).map(d => d.name).join(", ");
 
             addBotMessage(
-              `*jumps up and down excitedly*\n\nOMG OMG OMG! I know EXACTLY who you need to meet!\n\n🌟 ${dogIntros}\n\n*runs in circles*\n\nThey're all gonna be SO happy! Go check out their profiles - I told them all about you and they can't wait!\n\nClick "Browse Dogs" and look for my friends! And don't forget to tap the heart if you like them - it makes them SO happy! 💕`,
+              `*jumps up and down excitedly*\n\nOMG OMG OMG! I found some AMAZING matches for you!\n\n🌟 Based on everything you told me, I think you'd love: ${dogNames}${matches.length > 5 ? ` and ${matches.length - 5} more friends!` : '!'}\n\n*runs in circles*\n\nThey're all gonna be SO happy! Go check out their profiles - I told them all about you and they can't wait!\n\nClick "Browse Dogs" to meet them! And don't forget to tap the heart if you like them - it makes them SO happy! 💕`,
               [
-                { id: "1", label: "🔍 Meet your friends!", value: "browse" },
+                { id: "1", label: "🔍 Meet your matches!", value: "browse" },
                 { id: "2", label: "🔄 Let's start over", value: "restart" },
               ]
             );
@@ -233,8 +355,9 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
             );
           }
           break;
+        }
 
-        case 5:
+        case 14:
           // Final interactions
           if (content === "restart" || content.toLowerCase().includes("start over")) {
             setPreferences({});
@@ -252,7 +375,7 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
           break;
       }
     },
-    [step, preferences, addBotMessage, getRecommendations]
+    [step, preferences, addBotMessage, getRecommendations, onRecommendations]
   );
 
   return {
