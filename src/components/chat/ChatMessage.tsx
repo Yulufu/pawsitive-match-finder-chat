@@ -47,7 +47,7 @@ export function ChatMessage({ message, onOptionSelect }: ChatMessageProps) {
             "w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 shadow-md transition-all",
             isExcited && "animate-bounce-excited"
           )}>
-            <span className={cn("text-lg", isExcited && "animate-wag")}>🐶</span>
+            <span className={cn("text-lg", isExcited && "animate-wag")} title="Scout - Australian Shepherd Mix">🐕</span>
           </div>
           {showBark && (
             <span className="absolute -top-2 -right-1 text-xs animate-bark">🐾</span>
@@ -76,8 +76,8 @@ export function ChatMessage({ message, onOptionSelect }: ChatMessageProps) {
       </div>
 
       {!isBot && (
-        <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center flex-shrink-0 shadow-md" title="Melon - Australian Shepherd Mix">
-          <span className="text-lg">🐕‍🦺</span>
+        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 shadow-md">
+          <span className="text-lg">😊</span>
         </div>
       )}
     </div>
