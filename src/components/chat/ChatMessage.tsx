@@ -1,5 +1,6 @@
 import { ChatMessage as ChatMessageType } from "@/types/dog";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -8,6 +9,30 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, onOptionSelect }: ChatMessageProps) {
   const isBot = message.role === "bot";
+  const [showBark, setShowBark] = useState(false);
+  const [isExcited, setIsExcited] = useState(false);
+
+  // Check if Scout is excited (contains excitement indicators)
+  const isScoutExcited = isBot && (
+    message.content.includes("!") ||
+    message.content.includes("*wags") ||
+    message.content.includes("*tail") ||
+    message.content.includes("*bounces") ||
+    message.content.includes("*spins")
+  );
+
+  useEffect(() => {
+    if (isScoutExcited) {
+      setIsExcited(true);
+      setShowBark(true);
+      const barkTimer = setTimeout(() => setShowBark(false), 500);
+      const excitedTimer = setTimeout(() => setIsExcited(false), 2000);
+      return () => {
+        clearTimeout(barkTimer);
+        clearTimeout(excitedTimer);
+      };
+    }
+  }, [message.content, isScoutExcited]);
 
   return (
     <div
@@ -17,8 +42,16 @@ export function ChatMessage({ message, onOptionSelect }: ChatMessageProps) {
       )}
     >
       {isBot && (
-        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 shadow-md">
-          <span className="text-lg">🐶</span>
+        <div className="relative">
+          <div className={cn(
+            "w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 shadow-md transition-all",
+            isExcited && "animate-bounce-excited"
+          )}>
+            <span className={cn("text-lg", isExcited && "animate-wag")}>🐶</span>
+          </div>
+          {showBark && (
+            <span className="absolute -top-2 -right-1 text-xs animate-bark">🐾</span>
+          )}
         </div>
       )}
 
