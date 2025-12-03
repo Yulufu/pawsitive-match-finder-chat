@@ -1,8 +1,8 @@
 export function TypingIndicator() {
   return (
     <div className="flex gap-3 animate-fade-in">
-      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 animate-bounce-gentle">
-        <span className="text-lg">🐕</span>
+      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 animate-bounce-gentle shadow-md">
+        <span className="text-lg">🐶</span>
       </div>
 
       <div className="chat-bubble-bot">

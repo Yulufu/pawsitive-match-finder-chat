@@ -26,10 +26,10 @@ export default function Chat() {
     <main className="flex-1 flex flex-col max-w-3xl mx-auto w-full">
       <header className="text-center py-6 px-4">
         <h1 className="text-2xl font-display font-bold text-foreground">
-          Find Your Perfect Match
+          Meet Scout! 🐕
         </h1>
         <p className="text-muted-foreground mt-1">
-          Chat with Buddy to discover rescue dogs that fit your lifestyle
+          A friendly shelter pup who wants to introduce you to their friends
         </p>
       </header>
 
