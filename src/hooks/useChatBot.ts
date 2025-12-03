@@ -25,11 +25,11 @@ const createMessage = (
 
 const initialMessage = createMessage(
   "bot",
-  "Woof! 🐾 Hi there! I'm Buddy, your friendly adoption helper!\n\nI'm so excited to help you find your perfect furry companion. Let's start with a few questions to find dogs that match your lifestyle.\n\nFirst, what type of living space do you have?",
+  "*wags tail excitedly* \n\nOh wow, a new friend! Hi hi hi! 🐾\n\nI'm Scout, and I live here at the shelter with all my best buddies! We're all looking for our forever homes, and I LOVE helping my friends find their perfect humans!\n\n*tilts head curiously*\n\nSo tell me about where you live! Do you have a big yard I could... I mean, my friends could run around in?",
   [
-    { id: "1", label: "🏠 House with yard", value: "house_yard" },
-    { id: "2", label: "🏡 House without yard", value: "house_no_yard" },
-    { id: "3", label: "🏢 Apartment", value: "apartment" },
+    { id: "1", label: "🏠 House with a yard!", value: "house_yard" },
+    { id: "2", label: "🏡 House, but no yard", value: "house_no_yard" },
+    { id: "3", label: "🏢 An apartment", value: "apartment" },
   ]
 );
 
@@ -66,61 +66,119 @@ export function useChatBot() {
       switch (step) {
         case 0:
           // Living space
+          const hasYard = content.includes("yard");
           setPreferences((prev) => ({
             ...prev,
             livingSpace: content,
-            hasYard: content.includes("yard"),
+            hasYard,
           }));
           setStep(1);
-          addBotMessage(
-            "Great choice! 🏠\n\nNow, how would you describe your activity level? This helps me find a pup whose energy matches yours!",
-            [
-              { id: "1", label: "🛋️ Relaxed & chill", value: "low" },
-              { id: "2", label: "⚖️ Moderately active", value: "medium" },
-              { id: "3", label: "🏃 Very active", value: "high" },
-            ]
-          );
+          
+          if (hasYard) {
+            addBotMessage(
+              "*ears perk up* \n\nA YARD?! Oh my goodness, some of my friends are gonna be SO excited about that! My buddy Bear does the biggest zoomies - he'd love all that space!\n\n*spins in a circle*\n\nOkay okay, I need to focus. Important question: How much do you like going on adventures? Like walks and runs and playing fetch?",
+              [
+                { id: "1", label: "🛋️ I prefer chill cuddle time", value: "low" },
+                { id: "2", label: "⚖️ A nice balance of both!", value: "medium" },
+                { id: "3", label: "🏃 I'm super active!", value: "high" },
+              ]
+            );
+          } else {
+            addBotMessage(
+              "*nods understandingly*\n\nThat's totally okay! Lots of my friends do great in cozy spaces. Peanut actually prefers it - she says she can keep a better eye on her human that way! *giggles in dog*\n\nSo tell me, do you like lots of walks and playtime, or are you more of a Netflix-and-cuddle person?",
+              [
+                { id: "1", label: "🛋️ Cuddles all the way!", value: "low" },
+                { id: "2", label: "⚖️ A bit of both!", value: "medium" },
+                { id: "3", label: "🏃 Adventure time!", value: "high" },
+              ]
+            );
+          }
           break;
 
         case 1:
           // Activity level
           setPreferences((prev) => ({ ...prev, activityLevel: content }));
           setStep(2);
-          addBotMessage(
-            "Perfect! I'm getting a better picture already. 🎨\n\nDo you have any children at home?",
-            [
-              { id: "1", label: "👶 Yes, I have kids", value: "yes" },
-              { id: "2", label: "🚫 No children", value: "no" },
-            ]
-          );
+          
+          if (content === "low") {
+            addBotMessage(
+              "*settles down comfortably*\n\nOoooh, you sound like you'd get along great with Cinnamon! She's the BEST at naps. Sometimes we nap together and it's the coziest thing ever.\n\n*yawns just thinking about it*\n\nOh! Important thing - do you have any little humans at home? Like tiny ones that might want to pet us... a lot?",
+              [
+                { id: "1", label: "👶 Yes, I have kids!", value: "yes" },
+                { id: "2", label: "🚫 Nope, no kiddos", value: "no" },
+              ]
+            );
+          } else if (content === "high") {
+            addBotMessage(
+              "*bounces excitedly*\n\nYES! Another adventure human! Bear and Maple are gonna LOVE you! We play chase every day and it's the best thing EVER!\n\n*panting happily*\n\nOh oh oh, one more thing - any small humans in your pack? Some of my friends are extra gentle with kids!",
+              [
+                { id: "1", label: "👶 Yep, got little ones!", value: "yes" },
+                { id: "2", label: "🚫 No kids here", value: "no" },
+              ]
+            );
+          } else {
+            addBotMessage(
+              "*does a happy wiggle*\n\nBalance is good! Sometimes I want to run and play, and sometimes I just want belly rubs while my human watches TV. You get it!\n\nSpeaking of family... do you have any tiny humans? Kids, I think you call them?",
+              [
+                { id: "1", label: "👶 Yes, we have kids!", value: "yes" },
+                { id: "2", label: "🚫 No children", value: "no" },
+              ]
+            );
+          }
           break;
 
         case 2:
           // Kids
-          setPreferences((prev) => ({ ...prev, hasKids: content === "yes" }));
+          const hasKids = content === "yes";
+          setPreferences((prev) => ({ ...prev, hasKids }));
           setStep(3);
-          addBotMessage(
-            "Got it! And what about other pets? Do you have any furry (or not-so-furry) friends at home?",
-            [
-              { id: "1", label: "🐾 Yes, other pets", value: "yes" },
-              { id: "2", label: "🚫 No other pets", value: "no" },
-            ]
-          );
+          
+          if (hasKids) {
+            addBotMessage(
+              "*tail wags faster*\n\nOH I love kids! They give the BEST treats and scratches! Biscuit is especially good with little humans - she's so gentle and patient. Once a kid fell asleep on her and she didn't move for TWO HOURS!\n\n*looks around conspiratorially*\n\nPsst... do you have any other furry friends at home? Like... other dogs? Or even... *whispers* cats?",
+              [
+                { id: "1", label: "🐾 Yes, other pets!", value: "yes" },
+                { id: "2", label: "🚫 No other pets", value: "no" },
+              ]
+            );
+          } else {
+            addBotMessage(
+              "*nods thoughtfully*\n\nThat's cool! Some of my friends actually prefer being the only baby in the family - more treats and attention for them! *winks*\n\n*sniffs curiously*\n\nHey, do I smell other animals on you? Do you have other furry family members at home?",
+              [
+                { id: "1", label: "🐾 Yes, I have other pets!", value: "yes" },
+                { id: "2", label: "🚫 Just me!", value: "no" },
+              ]
+            );
+          }
           break;
 
         case 3:
           // Pets
-          setPreferences((prev) => ({ ...prev, hasPets: content === "yes" }));
+          const hasPets = content === "yes";
+          setPreferences((prev) => ({ ...prev, hasPets }));
           setStep(4);
-          addBotMessage(
-            "Almost there! Last question - do you have a size preference for your new best friend?",
-            [
-              { id: "1", label: "🐕 Small (under 25 lbs)", value: "small" },
-              { id: "2", label: "🐕‍🦺 Medium (25-60 lbs)", value: "medium" },
-              { id: "3", label: "🦮 Large (over 60 lbs)", value: "large" },
-              { id: "4", label: "💕 Any size works!", value: "any" },
-            ]
-          );
+          
+          if (hasPets) {
+            addBotMessage(
+              "*sniffs excitedly*\n\nMore friends! I knew I smelled something! Don't worry, lots of us here at the shelter are great at making furry friends. Cinnamon even likes CATS! I know, I was shocked too.\n\n*sits down properly, trying to look professional*\n\nOkay, last question! What size friend are you looking for?",
+              [
+                { id: "1", label: "🐕 Pocket-sized (small)", value: "small" },
+                { id: "2", label: "🐕‍🦺 Medium friend", value: "medium" },
+                { id: "3", label: "🦮 Big ol' buddy (large)", value: "large" },
+                { id: "4", label: "💕 Size doesn't matter!", value: "any" },
+              ]
+            );
+          } else {
+            addBotMessage(
+              "*does a little spin*\n\nSo you'd be getting a FIRST fur baby! That's so exciting! You're gonna be the best pet parent, I can tell.\n\n*tries to sit still but tail keeps wagging*\n\nOkay okay, super important last question: What size doggo are you dreaming of?",
+              [
+                { id: "1", label: "🐕 Tiny and portable!", value: "small" },
+                { id: "2", label: "🐕‍🦺 Medium is perfect", value: "medium" },
+                { id: "3", label: "🦮 Big and huggable!", value: "large" },
+                { id: "4", label: "💕 I'll love any size!", value: "any" },
+              ]
+            );
+          }
           break;
 
         case 4:
@@ -133,22 +191,33 @@ export function useChatBot() {
           setStep(5);
 
           const matches = getRecommendations(finalPrefs);
-          const matchNames = matches.map((d) => d.name).join(", ");
 
           if (matches.length > 0) {
+            const dogIntros = matches.map((d) => {
+              const intros: Record<string, string> = {
+                "Biscuit": "Biscuit (she gives the BEST cuddles!)",
+                "Mochi": "Mochi (she's so adventurous!)",
+                "Cinnamon": "Cinnamon (the nap queen 👑)",
+                "Peanut": "Peanut (tiny but FIERCE with love)",
+                "Bear": "Bear (the biggest teddy bear ever!)",
+                "Maple": "Maple (that fluffy butt tho!)",
+              };
+              return intros[d.name] || d.name;
+            }).join(", ");
+
             addBotMessage(
-              `🎉 Wonderful news! Based on your answers, I found ${matches.length} amazing ${matches.length === 1 ? "pup" : "pups"} that could be your perfect match!\n\n✨ Meet: ${matchNames}\n\nHead over to the "Browse Dogs" tab to see their profiles and learn more about each one. Don't forget to tap the ❤️ heart to save your favorites!\n\nIs there anything else you'd like to know?`,
+              `*jumps up and down excitedly*\n\nOMG OMG OMG! I know EXACTLY who you need to meet!\n\n🌟 ${dogIntros}\n\n*runs in circles*\n\nThey're all gonna be SO happy! Go check out their profiles - I told them all about you and they can't wait!\n\nClick "Browse Dogs" and look for my friends! And don't forget to tap the heart if you like them - it makes them SO happy! 💕`,
               [
-                { id: "1", label: "🔍 Browse Dogs", value: "browse" },
-                { id: "2", label: "🔄 Start Over", value: "restart" },
+                { id: "1", label: "🔍 Meet your friends!", value: "browse" },
+                { id: "2", label: "🔄 Let's start over", value: "restart" },
               ]
             );
           } else {
             addBotMessage(
-              "Hmm, I couldn't find an exact match with those criteria, but don't give up! Every dog deserves a loving home. 💕\n\nCheck out all our available dogs - you might just find an unexpected connection!",
+              `*tilts head*\n\nHmm, I'm having trouble thinking of the perfect match right now... BUT! You should still come meet everyone! Sometimes the best friendships are the ones you don't expect.\n\n*gives puppy eyes*\n\nMy friend Biscuit always says "Every dog deserves a chance to make a friend." Will you come meet us?`,
               [
-                { id: "1", label: "🔍 Browse All Dogs", value: "browse" },
-                { id: "2", label: "🔄 Start Over", value: "restart" },
+                { id: "1", label: "🔍 Meet everyone!", value: "browse" },
+                { id: "2", label: "🔄 Try different answers", value: "restart" },
               ]
             );
           }
@@ -162,7 +231,7 @@ export function useChatBot() {
             setMessages([initialMessage]);
           } else {
             addBotMessage(
-              "Feel free to browse our available dogs anytime! Each one is special and waiting for their forever home. 🏠💕\n\nIf you want to start fresh with new preferences, just say 'start over'!",
+              `*happy panting*\n\nYay! Go meet my friends! They're all waiting in the "Browse Dogs" section!\n\nAnd hey... *looks at you with big puppy eyes* ...even if you don't find your match today, will you come visit us again? We love making new friends!\n\n*wags tail hopefully*`,
               [
                 { id: "1", label: "🔍 Browse Dogs", value: "browse" },
                 { id: "2", label: "🔄 Start Over", value: "restart" },
