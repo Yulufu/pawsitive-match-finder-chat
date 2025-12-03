@@ -76,8 +76,8 @@ export function ChatMessage({ message, onOptionSelect }: ChatMessageProps) {
       </div>
 
       {!isBot && (
-        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-          <span className="text-lg">😊</span>
+        <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center flex-shrink-0 shadow-md" title="Melon - Australian Shepherd Mix">
+          <span className="text-lg">🐕‍🦺</span>
         </div>
       )}
     </div>
