@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { ChatMessage, ChatOption } from "@/types/dog";
+import { ChatMessage, ChatOption, Dog } from "@/types/dog";
 import { sampleDogs } from "@/data/sampleDogs";
 
 interface UserPreferences {
@@ -9,6 +9,10 @@ interface UserPreferences {
   hasKids?: boolean;
   hasPets?: boolean;
   sizePreference?: string;
+}
+
+interface UseChatBotOptions {
+  onRecommendations?: (recommended: Dog[], explore: Dog[]) => void;
 }
 
 const createMessage = (
@@ -33,7 +37,7 @@ const initialMessage = createMessage(
   ]
 );
 
-export function useChatBot() {
+export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [isTyping, setIsTyping] = useState(false);
   const [preferences, setPreferences] = useState<UserPreferences>({});
@@ -191,9 +195,16 @@ export function useChatBot() {
           setStep(5);
 
           const matches = getRecommendations(finalPrefs);
+          
+          // Get explore dogs (dogs not in recommendations)
+          const explorePool = sampleDogs.filter(d => !matches.find(m => m.id === d.id));
+          const explore = explorePool.slice(0, 5);
+          
+          // Notify about recommendations
+          onRecommendations?.(matches.slice(0, 10), explore);
 
           if (matches.length > 0) {
-            const dogIntros = matches.map((d) => {
+            const dogIntros = matches.slice(0, 10).map((d) => {
               const intros: Record<string, string> = {
                 "Biscuit": "Biscuit (she gives the BEST cuddles!)",
                 "Mochi": "Mochi (she's so adventurous!)",
