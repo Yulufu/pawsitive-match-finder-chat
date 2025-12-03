@@ -25,7 +25,7 @@ const createMessage = (
 
 const initialMessage = createMessage(
   "bot",
-  "*wags tail excitedly* \n\nOh wow, a new friend! Hi hi hi! 🐾\n\nI'm Scout, and I live here at the shelter with all my best buddies! We're all looking for our forever homes, and I LOVE helping my friends find their perfect humans!\n\n*tilts head curiously*\n\nSo tell me about where you live! Do you have a big yard I could... I mean, my friends could run around in?",
+  "*wags tail excitedly* \n\nOh wow, a new friend! Hi hi hi! 🐾\n\nI'm Melon, a fluffy Australian Shepherd mix! I live here at the shelter with all my best buddies! We're all looking for our forever homes, and I LOVE helping my friends find their perfect humans!\n\n*tilts head curiously*\n\nSo tell me about where you live! Do you have a big yard I could... I mean, my friends could run around in?",
   [
     { id: "1", label: "🏠 House with a yard!", value: "house_yard" },
     { id: "2", label: "🏡 House, but no yard", value: "house_no_yard" },
