@@ -64,7 +64,8 @@ const createMessage = (
 const addNavigationOptions = (options: ChatOption[], step: number, canGoBack: boolean): ChatOption[] => {
   const navOptions: ChatOption[] = [...options];
   
-  if (SKIPPABLE_STEPS.includes(step)) {
+  // Add skip option for all questions (non-skippable ones will show warning first)
+  if (step > 0 && step < 14) {
     navOptions.push({ id: "skip", label: "⏭️ Skip this question", value: "skip" });
   }
   
@@ -91,6 +92,7 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
   const [preferences, setPreferences] = useState<UserPreferences>({});
   const [step, setStep] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [skipWarnings, setSkipWarnings] = useState<Set<number>>(new Set()); // Tracks steps where user was warned about skipping
 
   const addBotMessage = useCallback((content: string, options?: ChatOption[], nextStep?: number) => {
     setIsTyping(true);
@@ -141,7 +143,28 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
       }
 
       // Handle skip - treat as "no preference" / undefined
-      const isSkipping = content === "skip";
+      const isSkipping = content === "skip" || content.toLowerCase() === "skip";
+      
+      // Check if user is trying to skip an important (non-skippable) question
+      if (isSkipping && !SKIPPABLE_STEPS.includes(step)) {
+        // Check if they've already been warned for this step
+        if (!skipWarnings.has(step)) {
+          // First attempt - warn them
+          setMessages((prev) => [...prev, createMessage("user", "Skip")]);
+          setSkipWarnings((prev) => new Set(prev).add(step));
+          addBotMessage(
+            "*tilts head with a concerned look*\n\nOh, this question is really important for me to find you the best matches! 🐾 I'd recommend answering it if you can.\n\nBut if you really need to skip, just say 'skip' again and I'll understand!",
+            messages[messages.length - 1]?.options?.filter(opt => opt.value !== "skip" && opt.value !== "back") || []
+          );
+          return;
+        }
+        // Second attempt - allow skip and reset warning
+        setSkipWarnings((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(step);
+          return newSet;
+        });
+      }
       
       setMessages((prev) => [...prev, createMessage("user", isSkipping ? "Skip" : content)]);
       
@@ -436,6 +459,7 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
             setPreferences({});
             setStep(0);
             setHistory([]);
+            setSkipWarnings(new Set());
             setMessages([initialMessage]);
           } else {
             addBotMessage(
@@ -449,7 +473,7 @@ export function useChatBot({ onRecommendations }: UseChatBotOptions = {}) {
           break;
       }
     },
-    [step, preferences, addBotMessage, getRecommendations, onRecommendations, saveHistory, goBack]
+    [step, preferences, addBotMessage, getRecommendations, onRecommendations, saveHistory, goBack, skipWarnings, messages]
   );
 
   const totalSteps = 14;
