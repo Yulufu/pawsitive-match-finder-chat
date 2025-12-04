@@ -53,6 +53,11 @@ export default function Chat() {
           </div>
           <Progress value={progressPercent} className="h-2" />
         </div>
+        
+        {/* Disclaimer */}
+        <p className="mt-3 text-xs text-muted-foreground/70">
+          🗽 Currently serving NY shelters only • Your data is not stored
+        </p>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 space-y-4 pb-4">
