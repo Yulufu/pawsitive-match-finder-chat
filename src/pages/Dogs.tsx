@@ -38,7 +38,7 @@ export default function Dogs() {
           <p className="text-muted-foreground">
             Chat with Melon first to get personalized dog recommendations based on your lifestyle and preferences!
           </p>
-          <Link to="/" className="mt-8">
+          <Link to="/">
             <Button className="gap-2">
               <MessageCircle className="w-4 h-4" />
               Chat with Melon
