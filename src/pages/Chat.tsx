@@ -26,6 +26,7 @@ export default function Chat() {
 
   const handleOptionSelect = (value: string) => {
     if (value === "browse") {
+      sessionStorage.removeItem('dogsScrollPosition');
       window.scrollTo(0, 0);
       navigate("/dogs");
     } else {
