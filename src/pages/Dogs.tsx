@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { DogCard } from "@/components/DogCard";
 import { useRecommendations } from "@/contexts/RecommendationsContext";
 import { useChat } from "@/contexts/ChatContext";
@@ -27,6 +28,10 @@ export default function Dogs() {
   const { recommendations, exploreDogs, hasCompletedChat } = useRecommendations();
   const { resetChat } = useChat();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleRestartChat = () => {
     resetChat();
