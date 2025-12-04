@@ -29,12 +29,21 @@ export default function Dogs() {
   const { resetChat } = useChat();
   const navigate = useNavigate();
 
+  // Restore scroll position on mount, save on unmount
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const savedPosition = sessionStorage.getItem('dogsScrollPosition');
+    if (savedPosition) {
+      window.scrollTo(0, parseInt(savedPosition, 10));
+    }
+
+    return () => {
+      sessionStorage.setItem('dogsScrollPosition', window.scrollY.toString());
+    };
   }, []);
 
   const handleRestartChat = () => {
     resetChat();
+    sessionStorage.removeItem('dogsScrollPosition');
     window.scrollTo(0, 0);
     navigate("/");
   };
