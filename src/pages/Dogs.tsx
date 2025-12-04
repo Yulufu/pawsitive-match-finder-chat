@@ -1,9 +1,9 @@
 import { DogCard } from "@/components/DogCard";
 import { useRecommendations } from "@/contexts/RecommendationsContext";
-import { Sparkles, Compass, MessageCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useChat } from "@/contexts/ChatContext";
+import { Sparkles, Compass, MessageCircle, RefreshCw } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
 // Placeholder images for dogs - these would come from an API
 const dogImages = [
   "https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&h=400&fit=crop",
@@ -25,7 +25,14 @@ const dogImages = [
 
 export default function Dogs() {
   const { recommendations, exploreDogs, hasCompletedChat } = useRecommendations();
+  const { resetChat } = useChat();
+  const navigate = useNavigate();
 
+  const handleRestartChat = () => {
+    resetChat();
+    window.scrollTo(0, 0);
+    navigate("/");
+  };
   // Empty state - user hasn't chatted with Melon yet
   if (!hasCompletedChat) {
     return (
@@ -97,9 +104,13 @@ export default function Dogs() {
         </div>
       </section>
 
-      <div className="text-center mt-12 p-8 bg-secondary/50 rounded-3xl">
-        <p className="text-lg font-medium text-foreground mb-2">Can't decide? 🤔</p>
-        <p className="text-muted-foreground">Go back to the chat and let Melon help you find your perfect match!</p>
+      <div className="text-center mt-12 p-8 bg-secondary/50 rounded-3xl space-y-4">
+        <p className="text-lg font-medium text-foreground">Want to update your preferences? 🔄</p>
+        <p className="text-muted-foreground">Start a new chat with Melon to get fresh recommendations!</p>
+        <Button onClick={handleRestartChat} variant="outline" className="gap-2">
+          <RefreshCw className="w-4 h-4" />
+          Update Preferences
+        </Button>
       </div>
     </main>
   );
