@@ -4,24 +4,14 @@ import { DogCard } from "@/components/DogCard";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import { sampleDogs } from "@/data/sampleDogs";
 import { Button } from "@/components/ui/button";
-
-const dogImages = [
-  "https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=500&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?w=500&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=500&h=400&fit=crop",
-];
-
+const dogImages = ["https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=500&h=400&fit=crop"];
 export default function Favorites() {
-  const { favorites } = useFavorites();
-
-  const favoriteDogs = sampleDogs.filter((dog) => favorites.includes(dog.id));
-
+  const {
+    favorites
+  } = useFavorites();
+  const favoriteDogs = sampleDogs.filter(dog => favorites.includes(dog.id));
   if (favoriteDogs.length === 0) {
-    return (
-      <main className="container mx-auto px-4 py-8">
+    return <main className="container mx-auto px-4 py-8">
         <div className="text-center py-16">
           <div className="w-24 h-24 rounded-full bg-secondary mx-auto flex items-center justify-center mb-6">
             <Heart className="w-12 h-12 text-muted-foreground" />
@@ -42,17 +32,14 @@ export default function Favorites() {
             <Button variant="outline" asChild>
               <Link to="/">
                 <MessageCircle className="w-4 h-4 mr-2" />
-                Chat with Buddy
+                Chat with Melon
               </Link>
             </Button>
           </div>
         </div>
-      </main>
-    );
+      </main>;
   }
-
-  return (
-    <main className="container mx-auto px-4 py-8">
+  return <main className="container mx-auto px-4 py-8">
       <header className="text-center mb-8">
         <h1 className="text-3xl font-display font-bold text-foreground">
           Your Favorites 💕
@@ -63,14 +50,12 @@ export default function Favorites() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {favoriteDogs.map((dog) => {
-          const originalIndex = sampleDogs.findIndex((d) => d.id === dog.id);
-          return (
-            <div key={dog.id} className="animate-fade-in">
+        {favoriteDogs.map(dog => {
+        const originalIndex = sampleDogs.findIndex(d => d.id === dog.id);
+        return <div key={dog.id} className="animate-fade-in">
               <DogCard dog={dog} imageUrl={dogImages[originalIndex]} />
-            </div>
-          );
-        })}
+            </div>;
+      })}
       </div>
 
       <div className="text-center mt-12 p-8 bg-primary/10 rounded-3xl">
@@ -84,6 +69,5 @@ export default function Favorites() {
           Find Local Rescues
         </Button>
       </div>
-    </main>
-  );
+    </main>;
 }
