@@ -23,8 +23,6 @@ const dogImages = [
   "https://images.unsplash.com/photo-1598133894008-61f7fdb8cc3a?w=500&h=400&fit=crop",
 ];
 
-// 
-
 export default function Dogs() {
   const { recommendations, exploreDogs, hasCompletedChat } = useRecommendations();
 
@@ -36,18 +34,12 @@ export default function Dogs() {
           <div className="w-24 h-24 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
             <span className="text-5xl">🐶</span>
           </div>
-
-          <h1 className="text-2xl font-display font-bold text-foreground">
-            No Recommendations Yet!
-          </h1>
-
+          <h1 className="text-2xl font-display font-bold text-foreground">No Recommendations Yet!</h1>
           <p className="text-muted-foreground">
-            Chat with Melon first to get personalized dog recommendations based on your lifestyle
-            and preferences!
+            Chat with Melon first to get personalized dog recommendations based on your lifestyle and preferences!
           </p>
-
-          <Link to="/">
-            <Button className="mt-8 gap-2">
+          <Link to="/" className="mt-8">
+            <Button className="gap-2">
               <MessageCircle className="w-4 h-4" />
               Chat with Melon
             </Button>
@@ -56,8 +48,6 @@ export default function Dogs() {
       </main>
     );
   }
-}
-
 
   return (
     <main className="container mx-auto px-4 py-8 space-y-12">
@@ -66,9 +56,7 @@ export default function Dogs() {
         <header className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            <h2 className="text-2xl font-display font-bold text-foreground">
-              Recommended for You
-            </h2>
+            <h2 className="text-2xl font-display font-bold text-foreground">Recommended for You</h2>
           </div>
           <p className="text-muted-foreground">
             Based on what you're looking for, these pups could be your perfect match! 🎯
@@ -89,9 +77,7 @@ export default function Dogs() {
         <header className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Compass className="w-6 h-6 text-accent" />
-            <h2 className="text-2xl font-display font-bold text-foreground">
-              Explore Hidden Gems
-            </h2>
+            <h2 className="text-2xl font-display font-bold text-foreground">Explore Hidden Gems</h2>
           </div>
           <p className="text-muted-foreground">
             These sweet pups haven't gotten much attention yet — give them a look! 💎
@@ -100,7 +86,11 @@ export default function Dogs() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {exploreDogs.map((dog, index) => (
-            <div key={`explore-${dog.id}`} className="animate-slide-up" style={{ animationDelay: `${(index + recommendations.length) * 50}ms` }}>
+            <div
+              key={`explore-${dog.id}`}
+              className="animate-slide-up"
+              style={{ animationDelay: `${(index + recommendations.length) * 50}ms` }}
+            >
               <DogCard dog={dog} imageUrl={dogImages[(index + 5) % dogImages.length]} />
             </div>
           ))}
@@ -108,12 +98,8 @@ export default function Dogs() {
       </section>
 
       <div className="text-center mt-12 p-8 bg-secondary/50 rounded-3xl">
-        <p className="text-lg font-medium text-foreground mb-2">
-          Can't decide? 🤔
-        </p>
-        <p className="text-muted-foreground">
-          Go back to the chat and let Melon help you find your perfect match!
-        </p>
+        <p className="text-lg font-medium text-foreground mb-2">Can't decide? 🤔</p>
+        <p className="text-muted-foreground">Go back to the chat and let Melon help you find your perfect match!</p>
       </div>
     </main>
   );
