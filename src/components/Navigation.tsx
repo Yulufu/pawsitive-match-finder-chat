@@ -18,7 +18,7 @@ export function Navigation() {
       {/* Global Disclaimer Banner */}
       <div className="bg-muted/50 border-b border-border">
         <div className="container mx-auto px-4 py-1.5 text-center">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground font-semibold">
             🗽 Currently serving NY shelters only • Your data is not stored
           </p>
         </div>
