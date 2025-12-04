@@ -14,8 +14,18 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-4">
+    <div className="sticky top-0 z-50">
+      {/* Global Disclaimer Banner */}
+      <div className="bg-muted/50 border-b border-border">
+        <div className="container mx-auto px-4 py-1.5 text-center">
+          <p className="text-xs text-muted-foreground">
+            🗽 Currently serving NY shelters only • Your data is not stored
+          </p>
+        </div>
+      </div>
+      
+      <nav className="bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center group-hover:animate-wag">
@@ -53,6 +63,7 @@ export function Navigation() {
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+    </div>
   );
 }
