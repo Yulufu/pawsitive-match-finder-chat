@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Heart, MessageCircle } from "lucide-react";
 import { DogCard } from "@/components/DogCard";
@@ -10,6 +11,18 @@ export default function Favorites() {
     favorites
   } = useFavorites();
   const favoriteDogs = sampleDogs.filter(dog => favorites.includes(dog.id));
+
+  // Restore scroll position on mount, save on unmount
+  useEffect(() => {
+    const savedPosition = sessionStorage.getItem('favoritesScrollPosition');
+    if (savedPosition) {
+      window.scrollTo(0, parseInt(savedPosition, 10));
+    }
+
+    return () => {
+      sessionStorage.setItem('favoritesScrollPosition', window.scrollY.toString());
+    };
+  }, []);
   if (favoriteDogs.length === 0) {
     return <main className="container mx-auto px-4 py-8">
         <div className="text-center py-16">
