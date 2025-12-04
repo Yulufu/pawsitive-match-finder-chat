@@ -23,6 +23,8 @@ const dogImages = [
   "https://images.unsplash.com/photo-1598133894008-61f7fdb8cc3a?w=500&h=400&fit=crop",
 ];
 
+// 
+
 export default function Dogs() {
   const { recommendations, exploreDogs, hasCompletedChat } = useRecommendations();
 
@@ -34,14 +36,18 @@ export default function Dogs() {
           <div className="w-24 h-24 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
             <span className="text-5xl">🐶</span>
           </div>
+
           <h1 className="text-2xl font-display font-bold text-foreground">
             No Recommendations Yet!
           </h1>
+
           <p className="text-muted-foreground">
-            Chat with Melon first to get personalized dog recommendations based on your lifestyle and preferences!
+            Chat with Melon first to get personalized dog recommendations based on your lifestyle
+            and preferences!
           </p>
-          <Link to="/" className="mt-8">
-            <Button className="gap-2">
+
+          <Link to="/">
+            <Button className="mt-8 gap-2">
               <MessageCircle className="w-4 h-4" />
               Chat with Melon
             </Button>
@@ -50,6 +56,8 @@ export default function Dogs() {
       </main>
     );
   }
+}
+
 
   return (
     <main className="container mx-auto px-4 py-8 space-y-12">
