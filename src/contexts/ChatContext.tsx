@@ -149,6 +149,13 @@ export function ChatProvider({
         return;
       }
 
+      // Handle restart commands
+      const restartCommands = ["restart", "try again", "start over", "reset"];
+      if (content === "restart_chat" || restartCommands.includes(content.toLowerCase().trim())) {
+        resetChat();
+        return;
+      }
+
       const isSkipping = content === "skip" || content.toLowerCase() === "skip";
       
       if (isSkipping && !SKIPPABLE_STEPS.includes(step)) {
@@ -420,6 +427,7 @@ export function ChatProvider({
               `*does happy zoomies in circles*\n\nOMG OMG OMG! I found ${matches.length} friends who could be perfect for you!! 🎉\n\nSome of my besties who match are: ${dogNames}!\n\n*pants excitedly*\n\nClick below to meet them all! I just KNOW one of them is going to be your new best friend forever!`,
               [
                 { id: "browse", label: "🐾 Meet my matches!", value: "browse" },
+                { id: "restart", label: "🔄 Start over", value: "restart_chat" },
               ]
             );
           } else {
@@ -427,6 +435,7 @@ export function ChatProvider({
               "*whimpers softly*\n\nOh no... I couldn't find any friends that match all your preferences right now. 😢\n\nBut don't give up! You can still browse all my shelter buddies - sometimes the perfect match is unexpected!\n\n*hopeful tail wag*",
               [
                 { id: "browse", label: "🐾 Browse all dogs anyway", value: "browse" },
+                { id: "restart", label: "🔄 Start over", value: "restart_chat" },
               ]
             );
           }
@@ -442,7 +451,7 @@ export function ChatProvider({
           );
       }
     },
-    [step, preferences, messages, skipWarnings, goBack, saveHistory, addBotMessage, getRecommendations, onRecommendations]
+    [step, preferences, messages, skipWarnings, goBack, resetChat, saveHistory, addBotMessage, getRecommendations, onRecommendations]
   );
 
   return (
