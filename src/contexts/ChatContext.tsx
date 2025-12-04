@@ -3,6 +3,7 @@ import { ChatMessage, ChatOption, Dog } from "@/types/dog";
 import { sampleDogs } from "@/data/sampleDogs";
 
 interface UserPreferences {
+  state?: string;
   location?: string;
   hasChildren?: boolean;
   childrenAges?: string;
@@ -31,7 +32,8 @@ interface HistoryEntry {
   messages: ChatMessage[];
 }
 
-const SKIPPABLE_STEPS = [7, 8, 9, 10, 11, 12, 13];
+const SKIPPABLE_STEPS = [8, 9, 10, 11, 12, 13, 14];
+const TRI_STATE_AREA = ["ny", "new york", "nj", "new jersey", "ct", "connecticut"];
 
 const createMessage = (
   role: "user" | "bot",
@@ -58,11 +60,12 @@ const addNavigationOptions = (options: ChatOption[], step: number, canGoBack: bo
 
 const initialMessage = createMessage(
   "bot",
-  "*wags tail excitedly* \n\nOh wow, a new friend! Hi hi hi! 🐾\n\nI'm Melon, a fluffy Australian Shepherd mix! I live here at the shelter with all my best buddies! We're all looking for our forever homes, and I LOVE helping my friends find their perfect humans!\n\n*tilts head curiously*\n\nFirst things first - where do you live? This helps me know which of my friends might be nearby!",
+  "*wags tail excitedly* \n\nOh wow, a new friend! Hi hi hi! 🐾\n\nI'm Melon, a fluffy Australian Shepherd mix! I live here at the shelter with all my best buddies! We're all looking for our forever homes, and I LOVE helping my friends find their perfect humans!\n\n*tilts head curiously*\n\nFirst things first - what state do you live in?",
   [
-    { id: "1", label: "🏙️ Big city life", value: "city" },
-    { id: "2", label: "🏘️ Suburbs", value: "suburbs" },
-    { id: "3", label: "🌾 Rural/countryside", value: "rural" },
+    { id: "1", label: "🗽 New York", value: "ny" },
+    { id: "2", label: "🏙️ New Jersey", value: "nj" },
+    { id: "3", label: "🌲 Connecticut", value: "ct" },
+    { id: "4", label: "📍 Other state", value: "other" },
   ]
 );
 
@@ -91,7 +94,7 @@ export function ChatProvider({
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [skipWarnings, setSkipWarnings] = useState<Set<number>>(new Set());
 
-  const totalSteps = 14;
+  const totalSteps = 15;
 
   const addBotMessage = useCallback((content: string, options?: ChatOption[], nextStep?: number) => {
     setIsTyping(true);
@@ -179,9 +182,38 @@ export function ChatProvider({
       saveHistory();
 
       switch (step) {
-        case 0:
-          if (!isSkipping) setPreferences((prev) => ({ ...prev, location: content }));
+        case 0: {
+          const isTriState = TRI_STATE_AREA.includes(content.toLowerCase()) || 
+                            ["ny", "nj", "ct"].includes(content.toLowerCase());
+          
+          if (!isTriState && content !== "skip") {
+            // Not in tri-state area - end conversation
+            addBotMessage(
+              "*ears droop sadly*\n\nOh no... 😢 I'm so sorry, but right now we're only working with shelters in the New York tri-state area (NY, NJ, CT).\n\n*hopeful tail wag*\n\nBut don't worry! We're hoping to expand soon. Check back later, and maybe I'll be able to help you find a furry friend near you!",
+              [
+                { id: "restart", label: "🔄 Start over", value: "restart_chat" },
+              ]
+            );
+            return;
+          }
+          
+          if (!isSkipping) setPreferences((prev) => ({ ...prev, state: content }));
           setStep(1);
+          addBotMessage(
+            "*perks ears up*\n\nPawsome! You're in our area! 🎉\n\nNow tell me - where do you live? This helps me know which of my friends might be nearby!",
+            [
+              { id: "1", label: "🏙️ Big city life", value: "city" },
+              { id: "2", label: "🏘️ Suburbs", value: "suburbs" },
+              { id: "3", label: "🌾 Rural/countryside", value: "rural" },
+            ],
+            1
+          );
+          break;
+        }
+
+        case 1:
+          if (!isSkipping) setPreferences((prev) => ({ ...prev, location: content }));
+          setStep(2);
           addBotMessage(
             "*perks ears up*\n\nOoh nice! Now here's a big question - do you have any little humans running around at home? You know, kids?",
             [
@@ -189,11 +221,11 @@ export function ChatProvider({
               { id: "2", label: "🧒 Yes, older kids (8+)", value: "older_kids" },
               { id: "3", label: "🚫 No kiddos", value: "no_kids" },
             ],
-            1
+            2
           );
           break;
 
-        case 1: {
+        case 2: {
           if (!isSkipping) {
             const hasChildren = content !== "no_kids";
             const childrenAges = content === "young_kids" ? "under_8" : content === "older_kids" ? "8_plus" : undefined;
@@ -204,7 +236,7 @@ export function ChatProvider({
               needsGoodWithKids: content === "young_kids"
             }));
           }
-          setStep(2);
+          setStep(3);
           addBotMessage(
             "*sniffs curiously*\n\nOoh ooh, very important question! Do you have any other furry (or not-so-furry) friends at home already?",
             [
@@ -213,12 +245,12 @@ export function ChatProvider({
               { id: "3", label: "🐾 Yes, both dogs and cats", value: "both" },
               { id: "4", label: "🚫 No other pets", value: "none" },
             ],
-            2
+            3
           );
           break;
         }
 
-        case 2: {
+        case 3: {
           if (!isSkipping) {
             const hasOtherPets = content !== "none";
             setPreferences((prev) => ({ 
@@ -229,7 +261,7 @@ export function ChatProvider({
               needsGoodWithCats: content === "cats" || content === "both"
             }));
           }
-          setStep(3);
+          setStep(4);
           addBotMessage(
             "*does a little spin*\n\nNow tell me about your den! What type of home do you have?",
             [
@@ -237,14 +269,14 @@ export function ChatProvider({
               { id: "2", label: "🏠 House", value: "house" },
               { id: "3", label: "🏡 Townhouse", value: "townhouse" },
             ],
-            3
+            4
           );
           break;
         }
 
-        case 3:
+        case 4:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, homeType: content }));
-          setStep(4);
+          setStep(5);
           
           if (content === "apartment") {
             addBotMessage(
@@ -254,7 +286,7 @@ export function ChatProvider({
                 { id: "2", label: "📢 Pretty busy/noisy", value: "noisy" },
                 { id: "3", label: "⚖️ Somewhere in between", value: "moderate" },
               ],
-              4
+              5
             );
           } else {
             addBotMessage(
@@ -264,12 +296,12 @@ export function ChatProvider({
                 { id: "2", label: "🌿 Yard but not fenced", value: "unfenced" },
                 { id: "3", label: "🚫 No yard", value: "no_yard" },
               ],
-              4
+              5
             );
           }
           break;
 
-        case 4:
+        case 5:
           if (!isSkipping) {
             if (preferences.homeType === "apartment") {
               setPreferences((prev) => ({ ...prev, neighborhoodNoise: content }));
@@ -280,7 +312,7 @@ export function ChatProvider({
               }));
             }
           }
-          setStep(5);
+          setStep(6);
           addBotMessage(
             "*settles down to listen carefully*\n\nOkay, super important question! How active do you want your new best friend to be?",
             [
@@ -288,13 +320,13 @@ export function ChatProvider({
               { id: "2", label: "🚶 Moderate walks & play", value: "medium" },
               { id: "3", label: "🏃 High energy - running/hiking!", value: "high" },
             ],
-            5
+            6
           );
           break;
 
-        case 5:
+        case 6:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, activityLevel: content }));
-          setStep(6);
+          setStep(7);
           addBotMessage(
             "*tilts head thoughtfully*\n\nHow many hours will your new friend be alone on a typical weekday? Some of us get lonely easily... *puppy eyes*",
             [
@@ -302,13 +334,13 @@ export function ChatProvider({
               { id: "2", label: "⏰ 4-8 hours", value: "4_to_8" },
               { id: "3", label: "😴 More than 8 hours", value: "more_8" },
             ],
-            6
+            7
           );
           break;
 
-        case 6:
+        case 7:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, hoursAlone: content }));
-          setStep(7);
+          setStep(8);
           addBotMessage(
             "*bounces excitedly*\n\nNow the fun part! What size doggo are you dreaming of?",
             [
@@ -319,13 +351,13 @@ export function ChatProvider({
               { id: "5", label: "🐻 Extra Large (80+ lbs)", value: "xl" },
               { id: "6", label: "💕 No preference!", value: "any" },
             ],
-            7
+            8
           );
           break;
 
-        case 7:
+        case 8:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, sizePreference: content === "any" ? undefined : content }));
-          setStep(8);
+          setStep(9);
           addBotMessage(
             "*wags tail*\n\nDo you have an age preference? Puppies are adorable but need LOTS of work. Seniors like to nap with you!",
             [
@@ -335,13 +367,13 @@ export function ChatProvider({
               { id: "4", label: "👴 Senior (7+ years)", value: "senior" },
               { id: "5", label: "💕 No preference!", value: "any" },
             ],
-            8
+            9
           );
           break;
 
-        case 8:
+        case 9:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, agePreference: content === "any" ? undefined : content }));
-          setStep(9);
+          setStep(10);
           addBotMessage(
             "*curious head tilt*\n\nDo you have a gender preference for your new friend?",
             [
@@ -349,26 +381,26 @@ export function ChatProvider({
               { id: "2", label: "♀️ Female", value: "female" },
               { id: "3", label: "💕 No preference!", value: "any" },
             ],
-            9
+            10
           );
           break;
 
-        case 9:
+        case 10:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, genderPreference: content === "any" ? undefined : content }));
-          setStep(10);
+          setStep(11);
           addBotMessage(
             "*sneezes cutely*\n\nDoes anyone in your home have dog allergies? Some of my friends are more hypoallergenic than others!",
             [
               { id: "1", label: "🤧 Yes, we have allergies", value: "yes" },
               { id: "2", label: "✨ Nope, no allergies!", value: "no" },
             ],
-            10
+            11
           );
           break;
 
-        case 10:
+        case 11:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, hasAllergies: content === "yes" }));
-          setStep(11);
+          setStep(12);
           addBotMessage(
             "*sits up straight trying to look professional*\n\nHow about training? Are you okay with a dog that still needs some house-training and leash work, or would you prefer one who's already got the basics down?",
             [
@@ -376,13 +408,13 @@ export function ChatProvider({
               { id: "2", label: "📚 Some training needed is fine", value: "some_training" },
               { id: "3", label: "🐾 I'm happy to train from scratch!", value: "needs_training" },
             ],
-            11
+            12
           );
           break;
 
-        case 11:
+        case 12:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, trainingPreference: content }));
-          setStep(12);
+          setStep(13);
           addBotMessage(
             "*gentle tail wag*\n\nSome of my friends here have special medical needs or disabilities. They're just as loveable! Are you open to considering them?",
             [
@@ -390,30 +422,30 @@ export function ChatProvider({
               { id: "2", label: "🚫 Prefer no special needs", value: "no" },
               { id: "3", label: "🤔 Depends on the situation", value: "maybe" },
             ],
-            12
+            13
           );
           break;
 
-        case 12:
+        case 13:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, openToSpecialNeeds: content === "yes" || content === "maybe" }));
-          setStep(13);
+          setStep(14);
           addBotMessage(
             "*final excited wiggle*\n\nLast question! Would you like to only see dogs who are already spayed/neutered and up-to-date on vaccines?",
             [
               { id: "1", label: "✅ Yes, only fully vaccinated", value: "yes" },
               { id: "2", label: "🚫 Doesn't matter to me", value: "no" },
             ],
-            13
+            14
           );
           break;
 
-        case 13: {
+        case 14: {
           const finalPrefs = {
             ...preferences,
             requiresVaccinated: isSkipping ? undefined : content === "yes",
           };
           setPreferences(finalPrefs);
-          setStep(14);
+          setStep(15);
 
           const matches = getRecommendations(finalPrefs);
           const explorePool = sampleDogs.filter(d => !matches.find(m => m.id === d.id));
