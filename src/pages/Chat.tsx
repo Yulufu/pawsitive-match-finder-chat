@@ -26,6 +26,7 @@ export default function Chat() {
 
   const handleOptionSelect = (value: string) => {
     if (value === "browse") {
+      window.scrollTo(0, 0);
       navigate("/dogs");
     } else {
       handleUserMessage(value);
