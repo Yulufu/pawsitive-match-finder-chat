@@ -11,6 +11,13 @@ export function ChatMessage({ message, onOptionSelect }: ChatMessageProps) {
   const isBot = message.role === "bot";
   const [showBark, setShowBark] = useState(false);
   const [isExcited, setIsExcited] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<Set<string>>(new Set());
+
+  // Check if this is a multi-select question
+  const isMultiSelect = message.options?.some(opt => opt.multiSelect) ?? false;
+  // Get selectable options (exclude navigation options like skip/back)
+  const selectableOptions = message.options?.filter(opt => opt.value !== "skip" && opt.value !== "back") ?? [];
+  const navigationOptions = message.options?.filter(opt => opt.value === "skip" || opt.value === "back") ?? [];
 
   // Check if Scout is excited (contains excitement indicators)
   const isScoutExcited = isBot && (
@@ -33,6 +40,37 @@ export function ChatMessage({ message, onOptionSelect }: ChatMessageProps) {
       };
     }
   }, [message.content, isScoutExcited]);
+
+  const handleOptionClick = (value: string) => {
+    if (!isMultiSelect) {
+      onOptionSelect?.(value);
+      return;
+    }
+
+    // For multi-select, toggle selection
+    setSelectedOptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
+  };
+
+  const handleMultiSelectDone = () => {
+    if (selectedOptions.size === 0) return;
+    
+    // If all selectable options are selected, treat as "no preference"
+    const allSelected = selectableOptions.every(opt => selectedOptions.has(opt.value));
+    if (allSelected) {
+      onOptionSelect?.("any");
+    } else {
+      // Join selected values with comma
+      onOptionSelect?.(Array.from(selectedOptions).join(","));
+    }
+  };
 
   return (
     <div
@@ -61,16 +99,53 @@ export function ChatMessage({ message, onOptionSelect }: ChatMessageProps) {
         </div>
 
         {message.options && message.options.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
-            {message.options.map((option) => (
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {selectableOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleOptionClick(option.value)}
+                  className={cn(
+                    "px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95",
+                    isMultiSelect && selectedOptions.has(option.value)
+                      ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                      : "bg-secondary hover:bg-primary hover:text-primary-foreground text-secondary-foreground"
+                  )}
+                >
+                  {isMultiSelect && selectedOptions.has(option.value) && "✓ "}
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            
+            {isMultiSelect && (
               <button
-                key={option.id}
-                onClick={() => onOptionSelect?.(option.value)}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary hover:bg-primary hover:text-primary-foreground text-secondary-foreground rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                onClick={handleMultiSelectDone}
+                disabled={selectedOptions.size === 0}
+                className={cn(
+                  "px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200",
+                  selectedOptions.size > 0
+                    ? "bg-primary text-primary-foreground hover:scale-105 active:scale-95"
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
+                )}
               >
-                {option.label}
+                Done ({selectedOptions.size} selected)
               </button>
-            ))}
+            )}
+            
+            {navigationOptions.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1 border-t border-border/50">
+                {navigationOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => onOptionSelect?.(option.value)}
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary/50 hover:bg-secondary text-secondary-foreground rounded-full text-xs sm:text-sm font-medium transition-all duration-200"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
