@@ -24,4 +24,5 @@ export interface ChatOption {
   id: string;
   label: string;
   value: string;
+  multiSelect?: boolean;
 }

@@ -342,14 +342,13 @@ export function ChatProvider({
           if (!isSkipping) setPreferences((prev) => ({ ...prev, hoursAlone: content }));
           setStep(8);
           addBotMessage(
-            "*bounces excitedly*\n\nNow the fun part! What size doggo are you dreaming of?",
+            "*bounces excitedly*\n\nNow the fun part! What size doggo are you dreaming of?\n\n✨ You can pick multiple sizes! Selecting all = No preference!",
             [
-              { id: "1", label: "🐕 Extra Small (under 10 lbs)", value: "xs" },
-              { id: "2", label: "🐕 Small (10-25 lbs)", value: "small" },
-              { id: "3", label: "🐕‍🦺 Medium (25-50 lbs)", value: "medium" },
-              { id: "4", label: "🦮 Large (50-80 lbs)", value: "large" },
-              { id: "5", label: "🐻 Extra Large (80+ lbs)", value: "xl" },
-              { id: "6", label: "💕 No preference!", value: "any" },
+              { id: "1", label: "🐕 Extra Small (under 10 lbs)", value: "xs", multiSelect: true },
+              { id: "2", label: "🐕 Small (10-25 lbs)", value: "small", multiSelect: true },
+              { id: "3", label: "🐕‍🦺 Medium (25-50 lbs)", value: "medium", multiSelect: true },
+              { id: "4", label: "🦮 Large (50-80 lbs)", value: "large", multiSelect: true },
+              { id: "5", label: "🐻 Extra Large (80+ lbs)", value: "xl", multiSelect: true },
             ],
             8
           );
@@ -359,13 +358,12 @@ export function ChatProvider({
           if (!isSkipping) setPreferences((prev) => ({ ...prev, sizePreference: content === "any" ? undefined : content }));
           setStep(9);
           addBotMessage(
-            "*wags tail*\n\nDo you have an age preference? Puppies are adorable but need LOTS of work. Seniors like to nap with you!",
+            "*wags tail*\n\nDo you have an age preference? Puppies are adorable but need LOTS of work. Seniors like to nap with you!\n\n✨ You can pick multiple ages! Selecting all = No preference!",
             [
-              { id: "1", label: "🐶 Puppy (under 1 year)", value: "puppy" },
-              { id: "2", label: "🐕 Young (1-3 years)", value: "young" },
-              { id: "3", label: "🐕‍🦺 Adult (3-7 years)", value: "adult" },
-              { id: "4", label: "👴 Senior (7+ years)", value: "senior" },
-              { id: "5", label: "💕 No preference!", value: "any" },
+              { id: "1", label: "🐶 Puppy (under 1 year)", value: "puppy", multiSelect: true },
+              { id: "2", label: "🐕 Young (1-3 years)", value: "young", multiSelect: true },
+              { id: "3", label: "🐕‍🦺 Adult (3-7 years)", value: "adult", multiSelect: true },
+              { id: "4", label: "👴 Senior (7+ years)", value: "senior", multiSelect: true },
             ],
             9
           );
