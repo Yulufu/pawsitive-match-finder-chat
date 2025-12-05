@@ -14,8 +14,8 @@ interface UserPreferences {
   neighborhoodNoise?: string;
   activityLevel?: string;
   hoursAlone?: string;
-  sizePreference?: string;
-  agePreference?: string;
+  sizePreference?: string[]; // Now an array for multi-select
+  agePreference?: string[];  // Now an array for multi-select
   genderPreference?: string;
   needsGoodWithKids?: boolean;
   needsGoodWithDogs?: boolean;
@@ -25,6 +25,12 @@ interface UserPreferences {
   openToSpecialNeeds?: boolean;
   requiresVaccinated?: boolean;
 }
+
+// Helper to parse multi-select values (comma-separated or "any")
+const parseMultiSelect = (value: string): string[] | undefined => {
+  if (value === "any" || value === "skip") return undefined;
+  return value.split(",").filter(v => v.trim());
+};
 
 interface HistoryEntry {
   step: number;
@@ -111,10 +117,22 @@ export function ChatProvider({
 
   const getRecommendations = useCallback((prefs: UserPreferences) => {
     return sampleDogs.filter((dog) => {
-      if (prefs.sizePreference && prefs.sizePreference !== "any") {
-        if (prefs.sizePreference === "small" && dog.size !== "small") return false;
-        if (prefs.sizePreference === "large" && dog.size === "small") return false;
+      // Size filtering with array support
+      if (prefs.sizePreference && prefs.sizePreference.length > 0) {
+        // Map dog sizes to our selection values
+        const sizeMap: Record<string, string[]> = {
+          "small": ["xs", "small"],
+          "medium": ["medium"],
+          "large": ["large", "xl"]
+        };
+        const dogSizeValues = sizeMap[dog.size] || [];
+        const hasMatchingSize = prefs.sizePreference.some(s => dogSizeValues.includes(s));
+        if (!hasMatchingSize) return false;
       }
+      
+      // Age filtering is not implemented in sampleDogs yet, but structure is ready
+      // if (prefs.agePreference && prefs.agePreference.length > 0) { ... }
+      
       if (prefs.needsGoodWithKids && !dog.goodWithKids) return false;
       if (prefs.needsGoodWithDogs && !dog.goodWithPets) return false;
       if (prefs.needsGoodWithCats && !dog.goodWithPets) return false;
@@ -355,7 +373,7 @@ export function ChatProvider({
           break;
 
         case 8:
-          if (!isSkipping) setPreferences((prev) => ({ ...prev, sizePreference: content === "any" ? undefined : content }));
+          if (!isSkipping) setPreferences((prev) => ({ ...prev, sizePreference: parseMultiSelect(content) }));
           setStep(9);
           addBotMessage(
             "*wags tail*\n\nDo you have an age preference? Puppies are adorable but need LOTS of work. Seniors like to nap with you!\n\n✨ You can pick multiple ages! Selecting all = No preference!",
@@ -370,7 +388,7 @@ export function ChatProvider({
           break;
 
         case 9:
-          if (!isSkipping) setPreferences((prev) => ({ ...prev, agePreference: content === "any" ? undefined : content }));
+          if (!isSkipping) setPreferences((prev) => ({ ...prev, agePreference: parseMultiSelect(content) }));
           setStep(10);
           addBotMessage(
             "*curious head tilt*\n\nDo you have a gender preference for your new friend?",
