@@ -34,7 +34,7 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <button
-          onClick={() => toggleFavorite(dog.id)}
+          onClick={() => toggleFavorite(dog)}
           className={cn(
             "btn-heart absolute top-3 right-3 bg-background/80 backdrop-blur-sm",
             favorited && "animate-pulse-heart"

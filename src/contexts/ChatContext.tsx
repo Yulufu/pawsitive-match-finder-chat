@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from "react";
 import { ChatMessage, ChatOption, Dog } from "@/types/dog";
 import { sampleDogs } from "@/data/sampleDogs";
+import { matchDogs, PreferencePayload, RecommendRequest, RecommendResponse, RecommendResult, ApiError } from "@/lib/api";
 
 interface UserPreferences {
   state?: string;
@@ -30,6 +31,180 @@ interface UserPreferences {
 const parseMultiSelect = (value: string): string[] | undefined => {
   if (value === "any" || value === "skip") return undefined;
   return value.split(",").filter(v => v.trim());
+};
+
+const toSizeCodes = (sizes?: string[]) => {
+  if (!sizes || sizes.length === 0) return undefined;
+  const map: Record<string, string> = {
+    xs: "XS",
+    small: "S",
+    medium: "M",
+    large: "L",
+    xl: "XL",
+  };
+  return sizes.map((s) => map[s] || s.toUpperCase());
+};
+
+const toAgeGroups = (ages?: string[]) => {
+  if (!ages || ages.length === 0) return undefined;
+  const map: Record<string, string> = {
+    puppy: "Puppy",
+    young: "Young",
+    adult: "Adult",
+    senior: "Senior",
+  };
+  return ages.map((age) => map[age] || age);
+};
+
+const bucketEnergy = (value: unknown): "low" | "medium" | "high" | undefined => {
+  if (typeof value === "string") {
+    const lower = value.toLowerCase();
+    if (lower.includes("low")) return "low";
+    if (lower.includes("high")) return "high";
+    if (lower.includes("medium") || lower.includes("moderate")) return "medium";
+  }
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return undefined;
+  if (num <= 3) return "low";
+  if (num <= 6) return "medium";
+  return "high";
+};
+
+const mapApiDogToDog = (result: RecommendResult): Dog => {
+  const dog = result.dog_data || {};
+  const sizeMap: Record<string, "small" | "medium" | "large"> = {
+    XS: "small",
+    S: "small",
+    Small: "small",
+    M: "medium",
+    Medium: "medium",
+    L: "large",
+    Large: "large",
+    XL: "large",
+  };
+
+  const sizeValue = sizeMap[String(dog.size || "")] || "medium";
+  const energyValue = bucketEnergy(dog.energy_level) || "medium";
+  const description = (dog.description_html as string | undefined)?.replace(/<[^>]+>/g, "") ||
+    (dog.description as string | undefined) ||
+    "This sweet pup is looking for a loving home!";
+  const breed =
+    (dog.breed_text as string | undefined) ||
+    (dog.breed_primary as string | undefined) ||
+    (dog.breed_secondary as string | undefined) ||
+    "Mixed Breed";
+  const age =
+    (dog.age_text as string | undefined) ||
+    (dog.age_group as string | undefined) ||
+    (dog.age_years !== undefined ? `${dog.age_years} years` : "Age unknown");
+  const traits: string[] = [];
+  if (dog.good_with_kids) traits.push("Kid friendly");
+  if (dog.good_with_dogs) traits.push("Dog friendly");
+  if (dog.good_with_cats) traits.push("Cat friendly");
+  if (dog.house_trained) traits.push("House trained");
+  if (dog.hypoallergenic) traits.push("Hypoallergenic");
+  if (dog.special_needs) traits.push("Special needs");
+  if (dog.needs_foster) traits.push("Needs foster");
+  if (Array.isArray(dog.tags)) {
+    (dog.tags as string[]).slice(0, 4).forEach((tag) => traits.push(tag));
+  }
+
+  const imageUrl =
+    (dog.primary_photo_url as string | undefined) ||
+    (Array.isArray(dog.photo_urls) ? (dog.photo_urls as string[])[0] : undefined) ||
+    "/placeholder.svg";
+
+  return {
+    id: result.dog_id,
+    name: (dog.name as string | undefined) || result.name || "Sweet pup",
+    breed,
+    age,
+    size: sizeValue,
+    energyLevel: energyValue,
+    goodWithKids: Boolean(dog.good_with_kids),
+    goodWithPets: Boolean(dog.good_with_dogs || dog.good_with_cats),
+    description,
+    imageUrl,
+    traits: traits.slice(0, 6),
+  };
+};
+
+const buildPayloadFromPreferences = (prefs: UserPreferences): RecommendRequest => {
+  const preferences: PreferencePayload[] = [];
+  const hardFilters: Record<string, unknown> = {};
+
+  const addPref = (
+    field: string,
+    hardness: "must" | "strong" | "nice",
+    value: unknown,
+    opts: { weight?: number; allowUnknown?: boolean } = {}
+  ) => {
+    preferences.push({
+      field,
+      hardness,
+      value,
+      weight: opts.weight,
+      allow_unknown: opts.allowUnknown ?? true,
+    });
+  };
+
+  if (prefs.state) {
+    hardFilters.location_state = prefs.state.toUpperCase();
+  }
+  if (prefs.location) {
+    hardFilters.location_label = prefs.location;
+  }
+
+  // Must-have safety/compatibility
+  if (prefs.needsGoodWithKids) addPref("good_with_kids", "must", true, { allowUnknown: false });
+  if (prefs.needsGoodWithDogs) addPref("good_with_dogs", "must", true, { allowUnknown: false });
+  if (prefs.needsGoodWithCats) addPref("good_with_cats", "must", true, { allowUnknown: false });
+  if (prefs.openToSpecialNeeds === false) addPref("special_needs", "must", false, { allowUnknown: false });
+  if (prefs.requiresVaccinated) {
+    addPref("vaccinations_up_to_date", "must", true, { allowUnknown: false });
+    addPref("spayed_neutered", "must", true, { allowUnknown: false });
+  }
+
+  // Preferences (strong/nice)
+  const sizeCodes = toSizeCodes(prefs.sizePreference);
+  if (sizeCodes) {
+    sizeCodes.forEach((size) => addPref("size", "nice", size));
+  }
+
+  const ageGroups = toAgeGroups(prefs.agePreference);
+  if (ageGroups) {
+    ageGroups.forEach((age) => addPref("age_group", "nice", age));
+  }
+
+  if (prefs.genderPreference) {
+    const gender = prefs.genderPreference === "male" ? "Male" : prefs.genderPreference === "female" ? "Female" : prefs.genderPreference;
+    addPref("sex", "nice", gender);
+  }
+
+  if (prefs.activityLevel) {
+    const target = prefs.activityLevel === "low" ? 2 : prefs.activityLevel === "high" ? 8 : 5;
+    addPref("energy_level", "nice", target, { weight: 0.5 });
+  }
+
+  if (prefs.homeType === "apartment") {
+    addPref("apartment_ok", "strong", true);
+  } else if (prefs.hasFencedYard) {
+    addPref("requires_fenced_yard", "nice", true);
+  }
+
+  if (prefs.hasAllergies) {
+    addPref("hypoallergenic", "strong", true);
+  }
+
+  if (prefs.trainingPreference === "trained") {
+    addPref("house_trained", "strong", true);
+  }
+
+  return {
+    hard_filters: hardFilters,
+    preferences,
+    seen_dog_ids: [],
+  };
 };
 
 interface HistoryEntry {
@@ -164,7 +339,7 @@ export function ChatProvider({
   }, []);
 
   const handleUserMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       if (content === "back") {
         goBack();
         return;
@@ -463,29 +638,64 @@ export function ChatProvider({
           setPreferences(finalPrefs);
           setStep(15);
 
-          const matches = getRecommendations(finalPrefs);
-          const explorePool = sampleDogs.filter(d => !matches.find(m => m.id === d.id));
-          const explore = explorePool.slice(0, 5);
-          
-          onRecommendations?.(matches.slice(0, 10), explore);
+          // Let the user know we're fetching
+          setMessages((prev) => [...prev, createMessage("bot", "*sniffs around excitedly*\n\nLet me check with my shelter friends and find the best pups for you...")]);
+          setIsTyping(true);
 
-          if (matches.length > 0) {
-            const dogNames = matches.slice(0, 5).map(d => d.name).join(", ");
+          try {
+            const payload: RecommendRequest = buildPayloadFromPreferences(finalPrefs);
+            const response: RecommendResponse = await matchDogs(payload, 10000);
+
+            const mapped = response.results.map(mapApiDogToDog);
+            const recommended = mapped.filter((d, idx) => response.results[idx].section === "best");
+            const explore = mapped.filter((d, idx) => response.results[idx].section === "explore");
+
+            onRecommendations?.(recommended.slice(0, 10), explore);
+
+            if (recommended.length > 0) {
+              const dogNames = recommended.slice(0, 5).map(d => d.name).join(", ");
+              addBotMessage(
+                `*does happy zoomies in circles*\n\nOMG OMG OMG! I found ${recommended.length} friends who could be perfect for you!! 🎉\n\nSome of my besties who match are: ${dogNames}!\n\n*pants excitedly*\n\nClick below to meet them all! I just KNOW one of them is going to be your new best friend forever!`,
+                [
+                  { id: "browse", label: "🐾 Meet my matches!", value: "browse" },
+                  { id: "restart", label: "🔄 Start over", value: "restart_chat" },
+                ]
+              );
+            } else if (explore.length > 0) {
+              addBotMessage(
+                "No perfect matches right now, but let’s peek at the Explore pups—sometimes hidden gems are waiting! 🐾",
+                [
+                  { id: "browse", label: "🐾 Explore pups", value: "browse" },
+                  { id: "restart", label: "🔄 Start over", value: "restart_chat" },
+                ]
+              );
+            } else {
+              addBotMessage(
+                "*whimpers softly*\n\nNo perfect matches right now, and I don't have explore pups either. Want to browse anyway or try again?",
+                [
+                  { id: "browse", label: "🐾 Browse anyway", value: "browse" },
+                  { id: "restart", label: "🔄 Try again", value: "restart_chat" },
+                ]
+              );
+            }
+          } catch (error) {
+            const fallbackMatches = getRecommendations(finalPrefs);
+            const exploreFallback = sampleDogs.filter(d => !fallbackMatches.find(m => m.id === d.id)).slice(0, 5);
+            onRecommendations?.(fallbackMatches.slice(0, 10), exploreFallback);
+
+            const friendlyDetail = error instanceof ApiError && error.body && (error.body as { detail?: string }).detail
+              ? `\n\n(Reason: ${(error.body as { detail?: string }).detail})`
+              : "";
+
             addBotMessage(
-              `*does happy zoomies in circles*\n\nOMG OMG OMG! I found ${matches.length} friends who could be perfect for you!! 🎉\n\nSome of my besties who match are: ${dogNames}!\n\n*pants excitedly*\n\nClick below to meet them all! I just KNOW one of them is going to be your new best friend forever!`,
+              `*tilts head apologetically*\n\nI couldn’t fetch live matches right now.${friendlyDetail}\n\nI picked some pups for you to browse while we try again!`,
               [
-                { id: "browse", label: "🐾 Meet my matches!", value: "browse" },
-                { id: "restart", label: "🔄 Start over", value: "restart_chat" },
+                { id: "browse", label: "🐾 Browse anyway", value: "browse" },
+                { id: "restart", label: "🔄 Try again", value: "restart_chat" },
               ]
             );
-          } else {
-            addBotMessage(
-              "*whimpers softly*\n\nOh no... I couldn't find any friends that match all your preferences right now. 😢\n\nBut don't give up! You can still browse all my shelter buddies - sometimes the perfect match is unexpected!\n\n*hopeful tail wag*",
-              [
-                { id: "browse", label: "🐾 Browse all dogs anyway", value: "browse" },
-                { id: "restart", label: "🔄 Start over", value: "restart_chat" },
-              ]
-            );
+          } finally {
+            setIsTyping(false);
           }
           break;
         }

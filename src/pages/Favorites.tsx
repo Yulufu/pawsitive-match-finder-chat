@@ -5,12 +5,14 @@ import { DogCard } from "@/components/DogCard";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import { sampleDogs } from "@/data/sampleDogs";
 import { Button } from "@/components/ui/button";
-const dogImages = ["https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?w=500&h=400&fit=crop", "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=500&h=400&fit=crop"];
 export default function Favorites() {
   const {
-    favorites
+    favorites,
+    favoriteDogs: favoriteDogsMap
   } = useFavorites();
-  const favoriteDogs = sampleDogs.filter(dog => favorites.includes(dog.id));
+  const favoriteDogs = favorites
+    .map((id) => favoriteDogsMap[id] || sampleDogs.find((dog) => dog.id === id))
+    .filter(Boolean) as typeof sampleDogs;
 
   // Restore scroll position on mount, save on unmount
   useEffect(() => {
@@ -64,9 +66,8 @@ export default function Favorites() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {favoriteDogs.map(dog => {
-        const originalIndex = sampleDogs.findIndex(d => d.id === dog.id);
         return <div key={dog.id} className="animate-fade-in">
-              <DogCard dog={dog} imageUrl={dogImages[originalIndex]} />
+              <DogCard dog={dog} />
             </div>;
       })}
       </div>
