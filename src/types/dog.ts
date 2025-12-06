@@ -9,6 +9,8 @@ export interface Dog {
   goodWithPets: boolean;
   description: string;
   imageUrl: string;
+  photoUrls?: string[]; // Multiple photos for gallery
+  shelterUrl?: string;  // Link to original shelter bio
   traits: string[];
 }
 

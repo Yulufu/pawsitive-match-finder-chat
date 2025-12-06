@@ -114,6 +114,15 @@ const mapApiDogToDog = (result: RecommendResult): Dog => {
     (Array.isArray(dog.photo_urls) ? (dog.photo_urls as string[])[0] : undefined) ||
     "/placeholder.svg";
 
+  // Get additional photos (excluding the primary one)
+  const photoUrls = Array.isArray(dog.photo_urls)
+    ? (dog.photo_urls as string[]).filter((url) => url !== imageUrl)
+    : undefined;
+
+  const shelterUrl = (dog.url as string | undefined) || 
+    (dog.shelter_url as string | undefined) ||
+    (dog.petfinder_url as string | undefined);
+
   return {
     id: result.dog_id,
     name: (dog.name as string | undefined) || result.name || "Sweet pup",
@@ -125,6 +134,8 @@ const mapApiDogToDog = (result: RecommendResult): Dog => {
     goodWithPets: Boolean(dog.good_with_dogs || dog.good_with_cats),
     description,
     imageUrl,
+    photoUrls,
+    shelterUrl,
     traits: traits.slice(0, 6),
   };
 };
