@@ -5,6 +5,11 @@ export interface Dog {
   age: string;
   size: "small" | "medium" | "large";
   energyLevel: "low" | "medium" | "high";
+  energyScore?: number; // 1-10 if provided by backend
+  ageYears?: number;
+  ageText?: string;
+  ageMonths?: number;
+  weightLbs?: number;
   goodWithKids: boolean;
   goodWithPets: boolean;
   description: string;

@@ -16,6 +16,14 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
   const favorited = isFavorite(dog.id);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  const formattedAge =
+    dog.ageText ||
+    (dog.ageYears !== undefined
+      ? `${dog.ageYears.toFixed(1).replace(/\.0$/, "")} yrs`
+      : dog.ageMonths !== undefined
+        ? `${dog.ageMonths} months`
+        : dog.age);
+
   const sizeLabels = {
     small: "Small",
     medium: "Medium",
@@ -81,7 +89,7 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
         <div className="p-4 space-y-3">
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="text-xs">
-              {dog.age}
+              {formattedAge}
             </Badge>
             <Badge variant="secondary" className="text-xs">
               {sizeLabels[dog.size]}

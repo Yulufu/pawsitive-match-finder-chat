@@ -70,6 +70,23 @@ const bucketEnergy = (value: unknown): "low" | "medium" | "high" | undefined => 
   return "high";
 };
 
+const parseEnergyScore = (value: unknown): number | undefined => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    if (value <= 0 || value > 100) return undefined;
+    return Math.min(Math.max(value, 1), 10);
+  }
+  if (typeof value === "string") {
+    const digits = value.match(/([0-9]{1,2})/);
+    if (digits) {
+      const num = Number(digits[1]);
+      if (Number.isFinite(num) && num > 0 && num <= 100) {
+        return Math.min(Math.max(num, 1), 10);
+      }
+    }
+  }
+  return undefined;
+};
+
 const mapApiDogToDog = (result: RecommendResult): Dog => {
   const dog = result.dog_data || {};
   const sizeMap: Record<string, "small" | "medium" | "large"> = {
@@ -84,7 +101,8 @@ const mapApiDogToDog = (result: RecommendResult): Dog => {
   };
 
   const sizeValue = sizeMap[String(dog.size || "")] || "medium";
-  const energyValue = bucketEnergy(dog.energy_level) || "medium";
+  const energyScore = parseEnergyScore(dog.energy_level);
+  const energyValue = bucketEnergy(energyScore ?? dog.energy_level) || "medium";
   const description = (dog.description_html as string | undefined)?.replace(/<[^>]+>/g, "") ||
     (dog.description as string | undefined) ||
     "This sweet pup is looking for a loving home!";
@@ -93,10 +111,11 @@ const mapApiDogToDog = (result: RecommendResult): Dog => {
     (dog.breed_primary as string | undefined) ||
     (dog.breed_secondary as string | undefined) ||
     "Mixed Breed";
-  const age =
-    (dog.age_text as string | undefined) ||
-    (dog.age_group as string | undefined) ||
-    (dog.age_years !== undefined ? `${dog.age_years} years` : "Age unknown");
+  const ageYears = typeof dog.age_years === "number" ? dog.age_years : undefined;
+  const ageMonths = typeof dog.age_months === "number" ? dog.age_months : undefined;
+  const ageTextRaw = (dog.age_text as string | undefined) || (dog.age_group as string | undefined);
+  const ageText = ageTextRaw || (ageYears !== undefined ? `${ageYears} years` : ageMonths !== undefined ? `${ageMonths} months` : "Age unknown");
+  const ageDisplay = ageTextRaw ? ageTextRaw : ageYears !== undefined ? `${ageYears} years` : ageMonths !== undefined ? `${ageMonths} months` : "Age unknown";
   const traits: string[] = [];
   if (dog.good_with_kids) traits.push("Kid friendly");
   if (dog.good_with_dogs) traits.push("Dog friendly");
@@ -114,22 +133,32 @@ const mapApiDogToDog = (result: RecommendResult): Dog => {
     (Array.isArray(dog.photo_urls) ? (dog.photo_urls as string[])[0] : undefined) ||
     "/placeholder.svg";
 
-  // Get additional photos (excluding the primary one)
+  // All photos (primary first)
   const photoUrls = Array.isArray(dog.photo_urls)
-    ? (dog.photo_urls as string[]).filter((url) => url !== imageUrl)
+    ? (dog.photo_urls as string[]).filter(Boolean)
     : undefined;
 
-  const shelterUrl = (dog.url as string | undefined) || 
+  const shelterUrl =
+    // Prefer the public/bio page; fall back to general URLs; adopt_url last
+    (dog.detail_url as string | undefined) ||
+    (dog.public_url as string | undefined) ||
+    (dog.url as string | undefined) ||
     (dog.shelter_url as string | undefined) ||
-    (dog.petfinder_url as string | undefined);
+    (dog.petfinder_url as string | undefined) ||
+    (dog.adopt_url as string | undefined);
 
   return {
     id: result.dog_id,
     name: (dog.name as string | undefined) || result.name || "Sweet pup",
     breed,
-    age,
+    age: ageDisplay,
+    ageYears,
+    ageMonths,
+    ageText,
     size: sizeValue,
     energyLevel: energyValue,
+    energyScore,
+    weightLbs: typeof dog.weight_lbs === "number" ? dog.weight_lbs : undefined,
     goodWithKids: Boolean(dog.good_with_kids),
     goodWithPets: Boolean(dog.good_with_dogs || dog.good_with_cats),
     description,

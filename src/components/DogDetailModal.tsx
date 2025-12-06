@@ -219,20 +219,34 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
         </div>
 
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-px bg-border mt-4">
+      <div className="grid grid-cols-3 gap-px bg-border mt-4">
           <div className="bg-background p-4 text-center">
             <Calendar className="w-5 h-5 mx-auto mb-1 text-primary" />
-            <p className="text-sm font-medium">{dog.age}</p>
+            <p className="text-sm font-medium">
+              {dog.ageText
+                ? dog.ageText
+                : dog.ageYears !== undefined
+                  ? `${dog.ageYears.toFixed(1).replace(/\\.0$/, "")} yrs`
+                  : dog.ageMonths !== undefined
+                    ? `${dog.ageMonths} months`
+                    : dog.age}
+            </p>
             <p className="text-xs text-muted-foreground">Age</p>
           </div>
           <div className="bg-background p-4 text-center">
             <Ruler className="w-5 h-5 mx-auto mb-1 text-primary" />
-            <p className="text-sm font-medium capitalize">{dog.size}</p>
-            <p className="text-xs text-muted-foreground">Size</p>
+            <p className="text-sm font-medium">
+              {dog.weightLbs !== undefined ? `${dog.weightLbs} lbs` : sizeLabels[dog.size]}
+            </p>
+            <p className="text-xs text-muted-foreground">{dog.weightLbs !== undefined ? "Weight" : "Size"}</p>
           </div>
           <div className="bg-background p-4 text-center">
             <Zap className="w-5 h-5 mx-auto mb-1 text-primary" />
-            <p className="text-sm font-medium capitalize">{dog.energyLevel}</p>
+            <p className="text-sm font-medium">
+              {dog.energyScore !== undefined
+                ? `${dog.energyScore}/10`
+                : energyLabels[dog.energyLevel]}
+            </p>
             <p className="text-xs text-muted-foreground">Energy</p>
           </div>
         </div>
@@ -292,7 +306,10 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
                 <Zap className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium">{energyLabels[dog.energyLevel]}</p>
+                <p className="font-medium">
+                  {energyLabels[dog.energyLevel]}
+                  {dog.energyScore !== undefined ? ` (${dog.energyScore}/10)` : ""}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {energyDescriptions[dog.energyLevel]}
                 </p>
@@ -322,22 +339,29 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
 
           {/* CTA */}
           <div className="pt-4 space-y-3">
-            <Button
-              size="lg"
-              className="w-full font-display text-lg gap-2"
-              asChild
-            >
-              <a
-                href={dog.shelterUrl || dog.imageUrl || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
+            {dog.shelterUrl ? (
+              <Button
+                size="lg"
+                className="w-full font-display text-lg gap-2"
+                asChild
               >
+                <a
+                  href={dog.shelterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                  Open Original Bio from Shelter
+                </a>
+              </Button>
+            ) : (
+              <Button size="lg" className="w-full font-display text-lg gap-2" disabled>
                 <ExternalLink className="w-5 h-5" />
-                Open Original Bio from Shelter
-              </a>
-            </Button>
+                Shelter link unavailable
+              </Button>
+            )}
             <p className="text-center text-xs text-muted-foreground">
-              View {dog.name}'s full profile on the shelter's website
+              View {dog.name}'s full profile on the shelter&apos;s website
             </p>
           </div>
         </div>
