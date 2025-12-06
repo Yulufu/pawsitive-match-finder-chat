@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dog } from "@/types/dog";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import { cn } from "@/lib/utils";
@@ -11,15 +12,15 @@ import {
 } from "@/components/ui/dialog";
 import {
   Heart,
-  MapPin,
   Ruler,
   Calendar,
   Zap,
   Baby,
   PawPrint,
-  Cat,
   Share2,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface DogDetailModalProps {
@@ -30,10 +31,31 @@ interface DogDetailModalProps {
 
 export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps) {
   const { toggleFavorite, isFavorite } = useFavorites();
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   if (!dog) return null;
 
   const favorited = isFavorite(dog.id);
+
+  // Combine imageUrl with photoUrls for the gallery
+  const allPhotos = [
+    dog.imageUrl,
+    ...(dog.photoUrls || []),
+  ].filter(Boolean) as string[];
+
+  const hasMultiplePhotos = allPhotos.length > 1;
+
+  const goToPrevious = () => {
+    setCurrentPhotoIndex((prev) =>
+      prev === 0 ? allPhotos.length - 1 : prev - 1
+    );
+  };
+
+  const goToNext = () => {
+    setCurrentPhotoIndex((prev) =>
+      prev === allPhotos.length - 1 ? 0 : prev + 1
+    );
+  };
 
   const sizeLabels = {
     small: "Small (under 25 lbs)",
@@ -66,20 +88,69 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) setCurrentPhotoIndex(0); // Reset on close
+      onOpenChange(isOpen);
+    }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
-        {/* Hero Image */}
+        {/* Photo Gallery */}
         <div className="relative">
-          <div className="aspect-[16/10] overflow-hidden">
+          <div className="aspect-[16/10] overflow-hidden bg-muted">
             <img
-              src={dog.imageUrl || "/placeholder.svg"}
-              alt={`${dog.name} - ${dog.breed}`}
-              className="w-full h-full object-cover"
+              src={allPhotos[currentPhotoIndex] || "/placeholder.svg"}
+              alt={`${dog.name} - Photo ${currentPhotoIndex + 1}`}
+              className="w-full h-full object-cover transition-opacity duration-300"
             />
           </div>
+
+          {/* Navigation Arrows */}
+          {hasMultiplePhotos && (
+            <>
+              <button
+                onClick={goToPrevious}
+                className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+                aria-label="Previous photo"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={goToNext}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+                aria-label="Next photo"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+
+          {/* Photo Indicators */}
+          {hasMultiplePhotos && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {allPhotos.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentPhotoIndex(index)}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-all",
+                    index === currentPhotoIndex
+                      ? "bg-background w-4"
+                      : "bg-background/50 hover:bg-background/70"
+                  )}
+                  aria-label={`Go to photo ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Photo Counter */}
+          {hasMultiplePhotos && (
+            <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-xs font-medium">
+              {currentPhotoIndex + 1} / {allPhotos.length}
+            </div>
+          )}
           
           {/* Floating Actions */}
-          <div className="absolute top-4 right-4 flex gap-2">
+          <div className="absolute top-3 right-3 flex gap-2">
             <button
               onClick={handleShare}
               className="p-2.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
@@ -103,8 +174,31 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
               />
             </button>
           </div>
-
         </div>
+
+        {/* Thumbnail Strip */}
+        {hasMultiplePhotos && (
+          <div className="flex gap-1 p-2 bg-muted/50 overflow-x-auto">
+            {allPhotos.map((photo, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentPhotoIndex(index)}
+                className={cn(
+                  "flex-shrink-0 w-16 h-12 rounded overflow-hidden border-2 transition-all",
+                  index === currentPhotoIndex
+                    ? "border-primary"
+                    : "border-transparent opacity-60 hover:opacity-100"
+                )}
+              >
+                <img
+                  src={photo}
+                  alt={`${dog.name} thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Name & Breed */}
         <div className="p-4 pb-0">
@@ -117,7 +211,7 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
         </div>
 
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-px bg-border">
+        <div className="grid grid-cols-3 gap-px bg-border mt-4">
           <div className="bg-background p-4 text-center">
             <Calendar className="w-5 h-5 mx-auto mb-1 text-primary" />
             <p className="text-sm font-medium">{dog.age}</p>
@@ -226,7 +320,7 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
               asChild
             >
               <a
-                href={dog.imageUrl || "#"}
+                href={dog.shelterUrl || dog.imageUrl || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
               >
