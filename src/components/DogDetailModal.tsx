@@ -77,6 +77,13 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
     high: "Thrives on adventures and active lifestyle",
   };
 
+  // Derive energy score from category if not provided
+  const getEnergyScore = () => {
+    if (dog.energyScore !== undefined) return dog.energyScore;
+    const categoryScores = { low: 3, medium: 5, high: 8 };
+    return categoryScores[dog.energyLevel];
+  };
+
   const handleShare = async () => {
     if (navigator.share) {
       await navigator.share({
@@ -242,11 +249,7 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
           </div>
           <div className="bg-background p-4 text-center">
             <Zap className="w-5 h-5 mx-auto mb-1 text-primary" />
-            <p className="text-sm font-medium">
-              {dog.energyScore !== undefined
-                ? `${dog.energyScore}/10`
-                : energyLabels[dog.energyLevel]}
-            </p>
+            <p className="text-sm font-medium">{getEnergyScore()}/10</p>
             <p className="text-xs text-muted-foreground">Energy</p>
           </div>
         </div>
@@ -307,8 +310,7 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
               </div>
               <div>
                 <p className="font-medium">
-                  {energyLabels[dog.energyLevel]}
-                  {dog.energyScore !== undefined ? ` (${dog.energyScore}/10)` : ""}
+                  {energyLabels[dog.energyLevel]} ({getEnergyScore()}/10)
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {energyDescriptions[dog.energyLevel]}
