@@ -19,7 +19,7 @@ import {
   PawPrint,
   Cat,
   Share2,
-  Mail,
+  ExternalLink,
 } from "lucide-react";
 
 interface DogDetailModalProps {
@@ -69,13 +69,14 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
         {/* Hero Image */}
-        <div className="relative aspect-[16/10] overflow-hidden">
-          <img
-            src={dog.imageUrl || "/placeholder.svg"}
-            alt={`${dog.name} - ${dog.breed}`}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
+        <div className="relative">
+          <div className="aspect-[16/10] overflow-hidden">
+            <img
+              src={dog.imageUrl || "/placeholder.svg"}
+              alt={`${dog.name} - ${dog.breed}`}
+              className="w-full h-full object-cover"
+            />
+          </div>
           
           {/* Floating Actions */}
           <div className="absolute top-4 right-4 flex gap-2">
@@ -103,15 +104,16 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
             </button>
           </div>
 
-          {/* Name & Breed Overlay */}
-          <div className="absolute bottom-4 left-4 right-4">
-            <DialogHeader className="text-left space-y-1">
-              <DialogTitle className="font-display text-3xl font-bold text-card">
-                {dog.name}
-              </DialogTitle>
-              <p className="text-card/90 text-lg">{dog.breed}</p>
-            </DialogHeader>
-          </div>
+        </div>
+
+        {/* Name & Breed */}
+        <div className="p-4 pb-0">
+          <DialogHeader className="text-left space-y-1">
+            <DialogTitle className="font-display text-3xl font-bold">
+              {dog.name}
+            </DialogTitle>
+            <p className="text-muted-foreground text-lg">{dog.breed}</p>
+          </DialogHeader>
         </div>
 
         {/* Quick Stats Grid */}
@@ -221,15 +223,19 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
             <Button
               size="lg"
               className="w-full font-display text-lg gap-2"
-              onClick={() => {
-                // TODO: Implement inquiry flow
-              }}
+              asChild
             >
-              <Mail className="w-5 h-5" />
-              Inquire About {dog.name}
+              <a
+                href={dog.imageUrl || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="w-5 h-5" />
+                Open Original Bio from Shelter
+              </a>
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              We'll connect you with the shelter to learn more about {dog.name}
+              View {dog.name}'s full profile on the shelter's website
             </p>
           </div>
         </div>
