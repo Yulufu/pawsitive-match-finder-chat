@@ -113,9 +113,14 @@ const mapApiDogToDog = (result: RecommendResult): Dog => {
     "Mixed Breed";
   const ageYears = typeof dog.age_years === "number" ? dog.age_years : undefined;
   const ageMonths = typeof dog.age_months === "number" ? dog.age_months : undefined;
-  const ageTextRaw = (dog.age_text as string | undefined) || (dog.age_group as string | undefined);
-  const ageText = ageTextRaw || (ageYears !== undefined ? `${ageYears} years` : ageMonths !== undefined ? `${ageMonths} months` : "Age unknown");
-  const ageDisplay = ageTextRaw ? ageTextRaw : ageYears !== undefined ? `${ageYears} years` : ageMonths !== undefined ? `${ageMonths} months` : "Age unknown";
+  const ageTextRaw = (dog.age_text as string | undefined);
+  const ageGroupRaw = (dog.age_group as string | undefined);
+  const formatAgeYears = (years: number) => `${years.toFixed(1).replace(/\.0$/, "")} years`;
+  const ageText =
+    ageYears !== undefined ? formatAgeYears(ageYears) :
+    ageMonths !== undefined ? `${ageMonths} months` :
+    ageTextRaw || ageGroupRaw || "Age unknown";
+  const ageDisplay = ageText;
   const traits: string[] = [];
   if (dog.good_with_kids) traits.push("Kid friendly");
   if (dog.good_with_dogs) traits.push("Dog friendly");

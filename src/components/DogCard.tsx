@@ -16,24 +16,14 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
   const favorited = isFavorite(dog.id);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  // Derive simplified age category for card display
-  const getAgeCategory = () => {
+  const formatAgeLabel = () => {
     if (dog.ageYears !== undefined) {
-      if (dog.ageYears < 1) return "Puppy";
-      if (dog.ageYears < 3) return "Young";
-      if (dog.ageYears < 7) return "Adult";
-      return "Senior";
+      return `${dog.ageYears.toFixed(1).replace(/\.0$/, "")} yrs`;
     }
     if (dog.ageMonths !== undefined) {
-      if (dog.ageMonths < 12) return "Puppy";
-      return "Young";
+      return `${dog.ageMonths} months`;
     }
-    // Fallback to parsing dog.age string
-    const ageLower = dog.age.toLowerCase();
-    if (ageLower.includes("puppy")) return "Puppy";
-    if (ageLower.includes("young")) return "Young";
-    if (ageLower.includes("senior")) return "Senior";
-    return "Adult";
+    return dog.ageText || dog.age;
   };
 
   const sizeLabels = {
@@ -101,7 +91,7 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
         <div className="p-4 space-y-3">
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="text-xs">
-              {getAgeCategory()}
+              {formatAgeLabel()}
             </Badge>
             <Badge variant="secondary" className="text-xs">
               {sizeLabels[dog.size]}

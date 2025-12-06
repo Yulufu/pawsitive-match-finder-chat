@@ -77,6 +77,24 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
     high: "Thrives on adventures and active lifestyle",
   };
 
+  const formatAgeDetail = () => {
+    if (dog.ageYears !== undefined) {
+      return `${dog.ageYears.toFixed(1).replace(/\.0$/, "")} years`;
+    }
+    if (dog.ageMonths !== undefined) {
+      return `${dog.ageMonths} months`;
+    }
+    return dog.ageText || dog.age;
+  };
+
+  const hasWeight = dog.weightLbs !== undefined;
+  const formatWeightOrSize = () => {
+    if (hasWeight) {
+      return `${dog.weightLbs} lbs`;
+    }
+    return sizeLabels[dog.size];
+  };
+
   // Derive energy score from category if not provided
   const getEnergyScore = () => {
     if (dog.energyScore !== undefined) return dog.energyScore;
@@ -230,22 +248,16 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
           <div className="bg-background p-4 text-center">
             <Calendar className="w-5 h-5 mx-auto mb-1 text-primary" />
             <p className="text-sm font-medium">
-              {dog.ageText
-                ? dog.ageText
-                : dog.ageYears !== undefined
-                  ? `${dog.ageYears.toFixed(1).replace(/\\.0$/, "")} yrs`
-                  : dog.ageMonths !== undefined
-                    ? `${dog.ageMonths} months`
-                    : dog.age}
+              {formatAgeDetail()}
             </p>
             <p className="text-xs text-muted-foreground">Age</p>
           </div>
           <div className="bg-background p-4 text-center">
             <Ruler className="w-5 h-5 mx-auto mb-1 text-primary" />
             <p className="text-sm font-medium">
-              {dog.weightLbs !== undefined ? `${dog.weightLbs} lbs` : sizeLabels[dog.size]}
+              {formatWeightOrSize()}
             </p>
-            <p className="text-xs text-muted-foreground">{dog.weightLbs !== undefined ? "Weight" : "Size"}</p>
+            <p className="text-xs text-muted-foreground">{hasWeight ? "Weight" : "Size"}</p>
           </div>
           <div className="bg-background p-4 text-center">
             <Zap className="w-5 h-5 mx-auto mb-1 text-primary" />
