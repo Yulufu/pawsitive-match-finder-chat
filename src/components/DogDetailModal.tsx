@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Heart,
@@ -21,6 +22,7 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
 
 interface DogDetailModalProps {
@@ -92,9 +94,15 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
       if (!isOpen) setCurrentPhotoIndex(0); // Reset on close
       onOpenChange(isOpen);
     }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+      <DialogContent hideDefaultClose className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
         {/* Photo Gallery */}
         <div className="relative">
+          {/* Close Button - Top Left */}
+          <DialogClose className="absolute left-3 top-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors">
+            <X className="w-5 h-5" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+
           <div className="aspect-[16/10] overflow-hidden bg-muted">
             <img
               src={allPhotos[currentPhotoIndex] || "/placeholder.svg"}
