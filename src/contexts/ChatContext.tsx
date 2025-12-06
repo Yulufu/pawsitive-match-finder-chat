@@ -87,6 +87,15 @@ const parseEnergyScore = (value: unknown): number | undefined => {
   return undefined;
 };
 
+const parseNumber = (value: unknown): number | undefined => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const num = parseFloat(value);
+    if (Number.isFinite(num)) return num;
+  }
+  return undefined;
+};
+
 const mapApiDogToDog = (result: RecommendResult): Dog => {
   const dog = result.dog_data || {};
   const sizeMap: Record<string, "small" | "medium" | "large"> = {
@@ -111,15 +120,15 @@ const mapApiDogToDog = (result: RecommendResult): Dog => {
     (dog.breed_primary as string | undefined) ||
     (dog.breed_secondary as string | undefined) ||
     "Mixed Breed";
-  const ageYears = typeof dog.age_years === "number" ? dog.age_years : undefined;
-  const ageMonths = typeof dog.age_months === "number" ? dog.age_months : undefined;
+  const ageYears = parseNumber(dog.age_years);
+  const ageMonths = parseNumber(dog.age_months);
   const ageTextRaw = (dog.age_text as string | undefined);
   const ageGroupRaw = (dog.age_group as string | undefined);
   const formatAgeYears = (years: number) => `${years.toFixed(1).replace(/\.0$/, "")} years`;
   const ageText =
     ageYears !== undefined ? formatAgeYears(ageYears) :
-    ageMonths !== undefined ? `${ageMonths} months` :
-    ageTextRaw || ageGroupRaw || "Age unknown";
+      ageMonths !== undefined ? `${ageMonths} months` :
+        ageTextRaw || ageGroupRaw || "Age unknown";
   const ageDisplay = ageText;
   const traits: string[] = [];
   if (dog.good_with_kids) traits.push("Kid friendly");
@@ -163,7 +172,7 @@ const mapApiDogToDog = (result: RecommendResult): Dog => {
     size: sizeValue,
     energyLevel: energyValue,
     energyScore,
-    weightLbs: typeof dog.weight_lbs === "number" ? dog.weight_lbs : undefined,
+    weightLbs: parseNumber(dog.weight_lbs),
     goodWithKids: Boolean(dog.good_with_kids),
     goodWithPets: Boolean(dog.good_with_dogs || dog.good_with_cats),
     description,
@@ -306,10 +315,10 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-export function ChatProvider({ 
-  children, 
-  onRecommendations 
-}: { 
+export function ChatProvider({
+  children,
+  onRecommendations
+}: {
   children: ReactNode;
   onRecommendations?: (recommended: Dog[], explore: Dog[]) => void;
 }) {
@@ -326,7 +335,7 @@ export function ChatProvider({
     setIsTyping(true);
     setTimeout(() => {
       setMessages((prev) => {
-        const finalOptions = nextStep !== undefined 
+        const finalOptions = nextStep !== undefined
           ? addNavigationOptions(options || [], nextStep, history.length > 0 || step > 0)
           : options;
         return [...prev, createMessage("bot", content, finalOptions)];
@@ -349,10 +358,10 @@ export function ChatProvider({
         const hasMatchingSize = prefs.sizePreference.some(s => dogSizeValues.includes(s));
         if (!hasMatchingSize) return false;
       }
-      
+
       // Age filtering is not implemented in sampleDogs yet, but structure is ready
       // if (prefs.agePreference && prefs.agePreference.length > 0) { ... }
-      
+
       if (prefs.needsGoodWithKids && !dog.goodWithKids) return false;
       if (prefs.needsGoodWithDogs && !dog.goodWithPets) return false;
       if (prefs.needsGoodWithCats && !dog.goodWithPets) return false;
@@ -398,7 +407,7 @@ export function ChatProvider({
       }
 
       const isSkipping = content === "skip" || content.toLowerCase() === "skip";
-      
+
       if (isSkipping && !SKIPPABLE_STEPS.includes(step)) {
         if (!skipWarnings.has(step)) {
           setMessages((prev) => [...prev, createMessage("user", "Skip")]);
@@ -415,15 +424,15 @@ export function ChatProvider({
           return newSet;
         });
       }
-      
+
       setMessages((prev) => [...prev, createMessage("user", isSkipping ? "Skip" : content)]);
       saveHistory();
 
       switch (step) {
         case 0: {
-          const isTriState = TRI_STATE_AREA.includes(content.toLowerCase()) || 
-                            ["ny", "nj", "ct"].includes(content.toLowerCase());
-          
+          const isTriState = TRI_STATE_AREA.includes(content.toLowerCase()) ||
+            ["ny", "nj", "ct"].includes(content.toLowerCase());
+
           if (!isTriState && content !== "skip") {
             // Not in tri-state area - end conversation
             addBotMessage(
@@ -434,7 +443,7 @@ export function ChatProvider({
             );
             return;
           }
-          
+
           if (!isSkipping) setPreferences((prev) => ({ ...prev, state: content }));
           setStep(1);
           addBotMessage(
@@ -467,8 +476,8 @@ export function ChatProvider({
           if (!isSkipping) {
             const hasChildren = content !== "no_kids";
             const childrenAges = content === "young_kids" ? "under_8" : content === "older_kids" ? "8_plus" : undefined;
-            setPreferences((prev) => ({ 
-              ...prev, 
+            setPreferences((prev) => ({
+              ...prev,
               hasChildren,
               childrenAges,
               needsGoodWithKids: content === "young_kids"
@@ -491,8 +500,8 @@ export function ChatProvider({
         case 3: {
           if (!isSkipping) {
             const hasOtherPets = content !== "none";
-            setPreferences((prev) => ({ 
-              ...prev, 
+            setPreferences((prev) => ({
+              ...prev,
               hasOtherPets,
               petTypes: content,
               needsGoodWithDogs: content === "dogs" || content === "both",
@@ -515,7 +524,7 @@ export function ChatProvider({
         case 4:
           if (!isSkipping) setPreferences((prev) => ({ ...prev, homeType: content }));
           setStep(5);
-          
+
           if (content === "apartment") {
             addBotMessage(
               "*nods understandingly*\n\nCozy spaces can be great! Some of my friends actually prefer apartments - less space to patrol means more nap time! *giggles*\n\nIs your building generally quiet or pretty busy with noise?",
@@ -544,8 +553,8 @@ export function ChatProvider({
             if (preferences.homeType === "apartment") {
               setPreferences((prev) => ({ ...prev, neighborhoodNoise: content }));
             } else {
-              setPreferences((prev) => ({ 
-                ...prev, 
+              setPreferences((prev) => ({
+                ...prev,
                 hasFencedYard: content === "fenced"
               }));
             }
