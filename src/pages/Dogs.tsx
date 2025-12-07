@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { sampleDogs } from "@/data/sampleDogs";
 import { matchDogs } from "@/lib/api";
 import { mapApiDogToDog } from "@/contexts/ChatContext";
+import { FooterCTA } from "@/components/FooterCTA";
 
 const DOGS_PER_PAGE = 5;
 
@@ -217,6 +218,8 @@ export default function Dogs() {
           </Button>
         </div>
       )}
+
+      <FooterCTA />
     </main>
   );
 }

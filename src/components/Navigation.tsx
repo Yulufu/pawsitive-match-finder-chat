@@ -7,12 +7,15 @@ export function Navigation() {
   const location = useLocation();
   const { favorites } = useFavorites();
 
-  const links = [
+  const mainLinks = [
     { to: "/", label: "Chat", icon: MessageCircle },
     { to: "/dogs", label: "Browse Dogs", icon: Dog },
     { to: "/favorites", label: "Favorites", icon: Heart, badge: favorites.length },
-    { to: "/donate", label: "Donate", icon: HandHeart },
-    { to: "/feedback", label: "Feedback", icon: MessageSquare },
+  ];
+
+  const ctaLinks = [
+    { to: "/donate", label: "Donate", icon: HandHeart, variant: "heart" as const },
+    { to: "/feedback", label: "Feedback", icon: MessageSquare, variant: "accent" as const },
   ];
 
   return (
@@ -39,7 +42,7 @@ export function Navigation() {
           </Link>
 
           <div className="flex items-center gap-2">
-            {links.map((link) => {
+            {mainLinks.map((link) => {
               const isActive = location.pathname === link.to;
               const Icon = link.icon;
 
@@ -62,6 +65,56 @@ export function Navigation() {
                 </Link>
               );
             })}
+
+            {/* CTA buttons with accent styling */}
+            <div className="hidden sm:flex items-center gap-2 ml-2 pl-2 border-l border-border">
+              {ctaLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = location.pathname === link.to;
+
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
+                      link.variant === "heart"
+                        ? isActive
+                          ? "bg-heart text-heart-foreground"
+                          : "bg-heart/10 text-heart hover:bg-heart/20"
+                        : isActive
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-accent/30 text-accent-foreground hover:bg-accent/50"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Mobile CTA icons */}
+            <div className="flex sm:hidden items-center gap-1 ml-1">
+              {ctaLinks.map((link) => {
+                const Icon = link.icon;
+
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={cn(
+                      "p-2 rounded-full transition-colors",
+                      link.variant === "heart"
+                        ? "bg-heart/10 text-heart hover:bg-heart/20"
+                        : "bg-accent/30 text-accent-foreground hover:bg-accent/50"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
