@@ -1,11 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
-import { MessageCircle, Dog, Heart } from "lucide-react";
+import { MessageCircle, Dog, Heart, HandHeart } from "lucide-react";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function Navigation() {
   const location = useLocation();
   const { favorites } = useFavorites();
+
+  const showDonationButton = location.pathname === "/dogs" || location.pathname === "/favorites";
 
   const links = [
     { to: "/", label: "Chat", icon: MessageCircle },
@@ -37,6 +40,12 @@ export function Navigation() {
           </Link>
 
           <div className="flex items-center gap-2">
+            {showDonationButton && (
+              <Button variant="outline" size="sm" className="gap-1.5 text-primary border-primary/30 hover:bg-primary/10">
+                <HandHeart className="w-4 h-4" />
+                <span className="hidden sm:inline">Donate</span>
+              </Button>
+            )}
             {links.map((link) => {
               const isActive = location.pathname === link.to;
               const Icon = link.icon;
