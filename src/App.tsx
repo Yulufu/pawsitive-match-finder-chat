@@ -8,6 +8,7 @@ import { RecommendationsProvider, useRecommendations } from "@/contexts/Recommen
 import { ChatProvider } from "@/contexts/ChatContext";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
+import { FloatingFeedback } from "@/components/FloatingFeedback";
 import Index from "./pages/Index";
 import Dogs from "./pages/Dogs";
 import Favorites from "./pages/Favorites";
@@ -40,6 +41,7 @@ function AppContent() {
             </Routes>
           </main>
           <Footer />
+          <FloatingFeedback />
         </div>
       </BrowserRouter>
     </ChatProvider>
