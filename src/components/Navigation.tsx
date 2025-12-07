@@ -8,8 +8,6 @@ export function Navigation() {
   const location = useLocation();
   const { favorites } = useFavorites();
 
-  const showDonationButton = location.pathname === "/dogs" || location.pathname === "/favorites";
-
   const links = [
     { to: "/", label: "Chat", icon: MessageCircle },
     { to: "/dogs", label: "Browse Dogs", icon: Dog },
@@ -40,12 +38,6 @@ export function Navigation() {
           </Link>
 
           <div className="flex items-center gap-2">
-            {showDonationButton && (
-              <Button variant="outline" size="sm" className="gap-1.5 text-primary border-primary/30 hover:bg-primary/10">
-                <HandHeart className="w-4 h-4" />
-                <span className="hidden sm:inline">Donate</span>
-              </Button>
-            )}
             {links.map((link) => {
               const isActive = location.pathname === link.to;
               const Icon = link.icon;
@@ -69,6 +61,11 @@ export function Navigation() {
                 </Link>
               );
             })}
+
+            <Button variant="outline" size="sm" className="ml-2 gap-1.5 text-primary border-primary/30 hover:bg-primary/10">
+              <HandHeart className="w-4 h-4" />
+              <span className="hidden sm:inline">Donate</span>
+            </Button>
           </div>
         </div>
       </div>
