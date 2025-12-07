@@ -83,12 +83,5 @@ export default function Favorites() {
           Find Local Rescues
         </Button>
       </div>
-
-      {/* Footer */}
-      <footer className="mt-16 pt-8 border-t border-border text-center">
-        <Button variant="link" className="text-muted-foreground hover:text-primary">
-          Share Feedback
-        </Button>
-      </footer>
     </main>;
 }
