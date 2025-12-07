@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DogCard } from "@/components/DogCard";
 import { useRecommendations } from "@/contexts/RecommendationsContext";
 import { useChat } from "@/contexts/ChatContext";
@@ -6,14 +6,20 @@ import { Sparkles, Compass, MessageCircle, RefreshCw } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { sampleDogs } from "@/data/sampleDogs";
+import { matchDogs } from "@/lib/api";
+import { mapApiDogToDog } from "@/contexts/ChatContext";
 
 export default function Dogs() {
-  const { recommendations, exploreDogs, hasCompletedChat } = useRecommendations();
+  const { recommendations, exploreDogs, hasCompletedChat, setExploreDogs } = useRecommendations();
   const { resetChat } = useChat();
   const navigate = useNavigate();
+  const [exploreLoading, setExploreLoading] = useState(false);
+  const [exploreError, setExploreError] = useState<string | null>(null);
 
   // Use sample dogs for explore section if user hasn't completed chat
-  const displayExploreDogs = hasCompletedChat ? exploreDogs : sampleDogs;
+  const displayExploreDogs = hasCompletedChat
+    ? exploreDogs
+    : (exploreDogs.length > 0 ? exploreDogs : sampleDogs);
 
   // Restore scroll position on mount, save on unmount
   useEffect(() => {
@@ -26,6 +32,37 @@ export default function Dogs() {
       sessionStorage.setItem('dogsScrollPosition', window.scrollY.toString());
     };
   }, []);
+
+  // Prefetch explore dogs from backend for pre-chat browsing
+  useEffect(() => {
+    if (hasCompletedChat || exploreDogs.length > 0) return;
+    let cancelled = false;
+    const loadExplore = async () => {
+      setExploreLoading(true);
+      setExploreError(null);
+      try {
+        const res = await matchDogs({ hard_filters: {}, preferences: [], seen_dog_ids: [] });
+        const mapped = res.results.map(mapApiDogToDog);
+        const explore = mapped.filter((_, idx) => res.results[idx].section === "explore");
+        const fallback = explore.length > 0 ? explore : mapped;
+        if (!cancelled && fallback.length > 0) {
+          setExploreDogs(fallback.slice(0, 20));
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setExploreError("Could not load live explore pups. Showing sample dogs instead.");
+        }
+      } finally {
+        if (!cancelled) {
+          setExploreLoading(false);
+        }
+      }
+    };
+    loadExplore();
+    return () => {
+      cancelled = true;
+    };
+  }, [hasCompletedChat, exploreDogs.length, setExploreDogs]);
 
   const handleRestartChat = () => {
     resetChat();
@@ -92,6 +129,12 @@ export default function Dogs() {
           <p className="text-muted-foreground">
             These sweet pups haven't gotten much attention yet — give them a look! 💎
           </p>
+          {exploreLoading && (
+            <p className="text-xs text-muted-foreground">Loading live pups...</p>
+          )}
+          {exploreError && (
+            <p className="text-xs text-destructive">{exploreError}</p>
+          )}
         </header>
 
         {displayExploreDogs.length === 0 ? (

@@ -15,6 +15,11 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const favorited = isFavorite(dog.id);
   const [detailOpen, setDetailOpen] = useState(false);
+  const mainImage =
+    imageUrl ||
+    dog.imageUrl ||
+    (dog.photoUrls && dog.photoUrls.length > 0 ? dog.photoUrls[0] : undefined) ||
+    "/placeholder.svg";
 
   const formatAgeLabel = () => {
     if (dog.ageYears !== undefined) {
@@ -32,15 +37,19 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
     large: "Large",
   };
 
+  const sizeWithRanges: Record<Dog["size"], string> = {
+    small: "Small (under 25 lbs)",
+    medium: "Medium (25-50 lbs)",
+    large: "Large (50+ lbs)",
+  };
+
   const energyLabels = {
     low: "Couch Potato 🛋️",
     medium: "Balanced ⚖️",
     high: "Energizer 🔋",
   };
 
-  const weightOrSizeLabel = dog.weightLbs !== undefined
-    ? `${Math.round(dog.weightLbs)} lbs`
-    : sizeLabels[dog.size];
+  const weightOrSizeLabel = sizeWithRanges[dog.size] ?? sizeLabels[dog.size] ?? "Size unknown";
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't open modal if clicking the favorite button
@@ -64,7 +73,7 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
       >
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
-            src={imageUrl || dog.imageUrl || "/placeholder.svg"}
+            src={mainImage}
             alt={`${dog.name} - ${dog.breed}`}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

@@ -96,7 +96,7 @@ const parseNumber = (value: unknown): number | undefined => {
   return undefined;
 };
 
-const mapApiDogToDog = (result: RecommendResult): Dog => {
+export const mapApiDogToDog = (result: RecommendResult): Dog => {
   const dog = result.dog_data || {};
   const sizeMap: Record<string, "small" | "medium" | "large"> = {
     XS: "small",

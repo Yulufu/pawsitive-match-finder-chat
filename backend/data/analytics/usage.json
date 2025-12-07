@@ -1,0 +1,23 @@
+{
+  "total_sessions": 0,
+  "recommend_calls": 17,
+  "dog_views": 0,
+  "explore_slots_served": 102,
+  "prompt_accepts": 0,
+  "prompt_declines": 0,
+  "popular_filters": {
+    "location_state": {
+      "NY": 1,
+      "NJ": 1
+    },
+    "location_label": {
+      "city": 2
+    }
+  },
+  "daily": {
+    "2025-12-07": {
+      "recommend_calls": 17,
+      "explore_slots_served": 102
+    }
+  }
+}
