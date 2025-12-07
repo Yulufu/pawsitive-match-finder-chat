@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { DogCard } from "@/components/DogCard";
 import { useRecommendations } from "@/contexts/RecommendationsContext";
 import { useChat } from "@/contexts/ChatContext";
-import { Sparkles, Compass, MessageCircle, RefreshCw } from "lucide-react";
+import { Sparkles, Compass, MessageCircle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { sampleDogs } from "@/data/sampleDogs";
 import { matchDogs } from "@/lib/api";
 import { mapApiDogToDog } from "@/contexts/ChatContext";
+
+const DOGS_PER_PAGE = 5;
 
 export default function Dogs() {
   const { recommendations, exploreDogs, hasCompletedChat, setExploreDogs } = useRecommendations();
@@ -15,11 +17,19 @@ export default function Dogs() {
   const navigate = useNavigate();
   const [exploreLoading, setExploreLoading] = useState(false);
   const [exploreError, setExploreError] = useState<string | null>(null);
+  const [explorePage, setExplorePage] = useState(1);
 
   // Use sample dogs for explore section if user hasn't completed chat
-  const displayExploreDogs = hasCompletedChat
+  const allExploreDogs = hasCompletedChat
     ? exploreDogs
     : (exploreDogs.length > 0 ? exploreDogs : sampleDogs);
+
+  const totalExplorePages = Math.ceil(allExploreDogs.length / DOGS_PER_PAGE);
+  
+  const displayExploreDogs = useMemo(() => {
+    const startIndex = (explorePage - 1) * DOGS_PER_PAGE;
+    return allExploreDogs.slice(startIndex, startIndex + DOGS_PER_PAGE);
+  }, [allExploreDogs, explorePage]);
 
   // Restore scroll position on mount, save on unmount
   useEffect(() => {
@@ -142,17 +152,58 @@ export default function Dogs() {
             No explore pups yet—try updating your answers to see more options.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {displayExploreDogs.map((dog, index) => (
-              <div
-                key={`explore-${dog.id}`}
-                className="animate-slide-up"
-                style={{ animationDelay: `${(index + (hasCompletedChat ? recommendations.length : 0)) * 50}ms` }}
-              >
-                <DogCard dog={dog} />
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              {displayExploreDogs.map((dog, index) => (
+                <div
+                  key={`explore-${dog.id}`}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${(index + (hasCompletedChat ? recommendations.length : 0)) * 50}ms` }}
+                >
+                  <DogCard dog={dog} />
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalExplorePages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setExplorePage(p => Math.max(1, p - 1))}
+                  disabled={explorePage === 1}
+                  className="rounded-full"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalExplorePages }, (_, i) => i + 1).map(page => (
+                    <Button
+                      key={page}
+                      variant={page === explorePage ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setExplorePage(page)}
+                      className="w-8 h-8 rounded-full p-0"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setExplorePage(p => Math.min(totalExplorePages, p + 1))}
+                  disabled={explorePage === totalExplorePages}
+                  className="rounded-full"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </section>
 
