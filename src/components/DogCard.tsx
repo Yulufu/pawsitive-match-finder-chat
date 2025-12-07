@@ -38,6 +38,10 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
     high: "Energizer 🔋",
   };
 
+  const weightOrSizeLabel = dog.weightLbs !== undefined
+    ? `${Math.round(dog.weightLbs)} lbs`
+    : sizeLabels[dog.size];
+
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't open modal if clicking the favorite button
     if ((e.target as HTMLElement).closest("button")) return;
@@ -94,7 +98,7 @@ export function DogCard({ dog, imageUrl }: DogCardProps) {
               {formatAgeLabel()}
             </Badge>
             <Badge variant="secondary" className="text-xs">
-              {sizeLabels[dog.size]}
+              {weightOrSizeLabel}
             </Badge>
             <Badge variant="outline" className="text-xs">
               {energyLabels[dog.energyLevel]}
