@@ -23,10 +23,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  MessageSquare,
-  Gift,
 } from "lucide-react";
-import { FeedbackModal } from "./FeedbackModal";
 
 interface DogDetailModalProps {
   dog: Dog | null;
@@ -37,7 +34,6 @@ interface DogDetailModalProps {
 export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   if (!dog) return null;
 
@@ -382,35 +378,7 @@ export function DogDetailModal({ dog, open, onOpenChange }: DogDetailModalProps)
               View {dog.name}'s full profile on the shelter&apos;s website
             </p>
           </div>
-
-          {/* Feedback & Donate */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              variant="outline"
-              className="flex-1 gap-2"
-              onClick={() => setFeedbackOpen(true)}
-            >
-              <MessageSquare className="w-4 h-4" />
-              Feedback
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 gap-2"
-              asChild
-            >
-              <a
-                href="https://example.com/donate"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Gift className="w-4 h-4" />
-                Donate
-              </a>
-            </Button>
-          </div>
         </div>
-
-        <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
       </DialogContent>
     </Dialog>
   );
