@@ -5,6 +5,7 @@ import { DogCard } from "@/components/DogCard";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import { sampleDogs } from "@/data/sampleDogs";
 import { Button } from "@/components/ui/button";
+import { FooterCTA } from "@/components/FooterCTA";
 export default function Favorites() {
   const {
     favorites,
@@ -83,5 +84,7 @@ export default function Favorites() {
           Find Local Rescues
         </Button>
       </div>
+
+      <FooterCTA />
     </main>;
 }
