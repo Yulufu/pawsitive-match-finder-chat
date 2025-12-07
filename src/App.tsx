@@ -7,6 +7,7 @@ import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { RecommendationsProvider, useRecommendations } from "@/contexts/RecommendationsContext";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { Navigation } from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 import Index from "./pages/Index";
 import Dogs from "./pages/Dogs";
 import Favorites from "./pages/Favorites";
@@ -30,12 +31,15 @@ function AppContent() {
       <BrowserRouter>
         <div className="min-h-screen flex flex-col bg-background">
           <Navigation />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dogs" element={<Dogs />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/dogs" element={<Dogs />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          <Footer />
         </div>
       </BrowserRouter>
     </ChatProvider>
