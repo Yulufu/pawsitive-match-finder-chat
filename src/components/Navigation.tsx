@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { MessageCircle, Dog, Heart } from "lucide-react";
+import { MessageCircle, Dog, Heart, HandHeart, MessageSquare } from "lucide-react";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,8 @@ export function Navigation() {
     { to: "/", label: "Chat", icon: MessageCircle },
     { to: "/dogs", label: "Browse Dogs", icon: Dog },
     { to: "/favorites", label: "Favorites", icon: Heart, badge: favorites.length },
+    { to: "/donate", label: "Donate", icon: HandHeart },
+    { to: "/feedback", label: "Feedback", icon: MessageSquare },
   ];
 
   return (

@@ -10,6 +10,8 @@ import { Navigation } from "@/components/Navigation";
 import Index from "./pages/Index";
 import Dogs from "./pages/Dogs";
 import Favorites from "./pages/Favorites";
+import Donate from "./pages/Donate";
+import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ function AppContent() {
             <Route path="/" element={<Index />} />
             <Route path="/dogs" element={<Dogs />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/donate" element={<Donate />} />
+            <Route path="/feedback" element={<Feedback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
