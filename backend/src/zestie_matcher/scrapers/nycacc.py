@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import hashlib
 from datetime import datetime, timezone
@@ -16,7 +17,8 @@ from bs4 import BeautifulSoup
 
 TOKEN_URL = "https://pets.mcgilldevtech.com/token"
 GRAPHQL_URL = "https://pets.mcgilldevtech.com/graphql"
-API_KEY = "jKbOSNYtJn5qhYbsv9IKL6OEt7etN6jcALlerH82"
+# API key should be provided via NYCACC_API_KEY environment variable
+API_KEY = os.getenv("NYCACC_API_KEY", "")
 ORGANIZATION = "accofnyc"
 CLIENT_NAME = "ACC Web"
 CLIENT_VERSION = "Sat Jul 12 08:24:37 AM CDT 2025"
@@ -225,6 +227,12 @@ def parse_args(argv: Optional[Iterable[str]]) -> argparse.Namespace:
 
 def main(argv: Optional[Iterable[str]] = None) -> int:
     args = parse_args(argv)
+    
+    # Validate API key is configured
+    if not API_KEY:
+        print("Error: NYCACC_API_KEY environment variable is not set", file=sys.stderr)
+        return 1
+    
     session = requests.Session()
     allowed_types: Optional[set[str]]
     if args.all_types:

@@ -35,7 +35,7 @@ export default function Feedback() {
     }
 
     // For now, just show success (no backend storage per constraints)
-    console.log("Feedback submitted:", { feedbackType, message, email });
+    // Note: In production, this should be sent to a backend endpoint
     setSubmitted(true);
     toast({
       title: "Thank you!",
