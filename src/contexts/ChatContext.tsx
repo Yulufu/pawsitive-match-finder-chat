@@ -2,6 +2,7 @@ import { createContext, useContext, useState, ReactNode, useCallback } from "rea
 import { ChatMessage, ChatOption, Dog } from "@/types/dog";
 import { sampleDogs } from "@/data/sampleDogs";
 import { matchDogs, PreferencePayload, RecommendRequest, RecommendResponse, RecommendResult, ApiError } from "@/lib/api";
+import DOMPurify from "dompurify";
 
 interface UserPreferences {
   state?: string;
@@ -112,9 +113,11 @@ export const mapApiDogToDog = (result: RecommendResult): Dog => {
   const sizeValue = sizeMap[String(dog.size || "")] || "medium";
   const energyScore = parseEnergyScore(dog.energy_level);
   const energyValue = bucketEnergy(energyScore ?? dog.energy_level) || "medium";
-  const description = (dog.description_html as string | undefined)?.replace(/<[^>]+>/g, "") ||
-    (dog.description as string | undefined) ||
-    "This sweet pup is looking for a loving home!";
+  // Sanitize description from external sources using DOMPurify
+  const rawDescription = (dog.description_html as string | undefined) || (dog.description as string | undefined);
+  const description = rawDescription
+    ? DOMPurify.sanitize(rawDescription, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
+    : "This sweet pup is looking for a loving home!";
   const breed =
     (dog.breed_text as string | undefined) ||
     (dog.breed_primary as string | undefined) ||
